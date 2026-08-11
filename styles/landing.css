@@ -1,4 +1,4 @@
-@layer udocs.tokens, udocs.components, udocs.motion;
+@layer udocs.tokens, udocs.motion;
 
 @layer udocs.tokens {
   :where([data-udocs-root]) {
@@ -12,8 +12,7 @@
   }
 }
 
-@layer udocs.components {
-  .udocs-shell { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
+.udocs-shell { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
   .udocs-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .udocs-hero { position: relative; overflow: clip; padding-block: clamp(3rem, 8vw, 6rem); }
   .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: 40rem; background: radial-gradient(circle at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
@@ -58,8 +57,7 @@
   .udocs-ecosystem__card:hover .udocs-ecosystem__title svg { transform: translateX(3px); }
   .udocs-ecosystem p { margin: 0.55rem 0 0; color: var(--udocs-muted-foreground); line-height: 1.55; }
   @media (max-width: 56rem) { .udocs-ecosystem__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 40rem) { .udocs-ecosystem__list { grid-template-columns: 1fr; } }
-}
+@media (max-width: 40rem) { .udocs-ecosystem__list { grid-template-columns: 1fr; } }
 
 @layer udocs.motion {
   [data-udocs-motion="true"] [data-udocs-reveal] { opacity: 0; transform: translateY(0.75rem); transition: opacity 0.45s ease, transform 0.45s ease; }
