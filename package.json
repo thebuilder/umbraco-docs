@@ -1,6 +1,6 @@
 {
   "name": "@thebuilder/umbraco-docs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Composable Blume presentation and metadata contracts for TheBuilder Umbraco package documentation.",
   "type": "module",
   "license": "MIT",
