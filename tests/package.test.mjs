@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { defineUmbracoPackage } from "../dist/index.js";
 
@@ -36,4 +37,11 @@ test("defineUmbracoPackage rejects unsafe links and logo paths", () => {
 test("defineUmbracoPackage reports malformed JavaScript input at the boundary", () => {
   assert.throws(() => defineUmbracoPackage(null), /package must be an object/);
   assert.throws(() => defineUmbracoPackage({ id: "example" }), /logo must be a non-empty string/);
+});
+
+test("landing component styles can override unlayered host resets", async () => {
+  const css = await readFile(new URL("../styles/landing.css", import.meta.url), "utf8");
+
+  assert.doesNotMatch(css, /@layer\s+udocs\.components/);
+  assert.match(css, /^\.udocs-shell\s*\{/m);
 });
