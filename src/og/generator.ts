@@ -1,0 +1,85 @@
+import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import matter from "gray-matter";
+import sharp from "sharp";
+import type { OgCardInput, UmbracoDocsOgConfig } from "./types.js";
+
+const WIDTH = 1200;
+const HEIGHT = 630;
+
+function escapeXml(value: string): string {
+  return value.replace(/[<>&"']/g, (character) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[character] ?? character);
+}
+
+function wrap(value: string, max = 42): string[] {
+  const words = value.trim().split(/\s+/);
+  const lines: string[] = [];
+  for (const word of words) {
+    const current = lines.at(-1);
+    if (!current || current.length + word.length + 1 > max) lines.push(word);
+    else lines[lines.length - 1] = `${current} ${word}`;
+  }
+  return lines.slice(0, 3);
+}
+
+export function resolvePublicImagePath(publicDir: string, image: string, prefix = "/social"): string {
+  if (!image.startsWith(`${prefix}/`) || !image.endsWith(".png") || image.includes("\\") || image.split("/").includes("..")) {
+    throw new TypeError(`Unsafe OG image path ${image}; expected a .png below ${prefix}/`);
+  }
+  const root = path.resolve(publicDir);
+  const output = path.resolve(root, `.${image}`);
+  if (!output.startsWith(`${root}${path.sep}`)) throw new TypeError(`OG image escapes public directory: ${image}`);
+  return output;
+}
+
+async function contentFiles(directory: string): Promise<string[]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const nested = await Promise.all(entries.map(async (entry) => {
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) return contentFiles(absolute);
+    return /\.mdx?$/.test(entry.name) ? [absolute] : [];
+  }));
+  return nested.flat().sort();
+}
+
+export async function collectOgCards(config: UmbracoDocsOgConfig): Promise<OgCardInput[]> {
+  const prefix = config.prefix ?? "/social";
+  const cards: OgCardInput[] = [{
+    title: config.root.title,
+    description: config.root.description,
+    image: config.root.image ?? `${prefix}/index.png`,
+  }];
+  for (const file of await contentFiles(config.contentDir)) {
+    const { data } = matter(await readFile(file, "utf8"));
+    const image = data.seo?.image;
+    if (typeof data.title === "string" && typeof data.description === "string" && typeof image === "string") {
+      cards.push({ title: data.title, description: data.description, image });
+    }
+  }
+  return cards.sort((a, b) => a.image.localeCompare(b.image));
+}
+
+async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promise<Buffer> {
+  const titleLines = wrap(card.title);
+  const title = titleLines.map((line, index) => `<text x="72" y="${220 + index * 74}" class="title">${escapeXml(line)}</text>`).join("");
+  const description = wrap(card.description, 72).slice(0, 2).map((line, index) => `<text x="72" y="${480 + index * 34}" class="description">${escapeXml(line)}</text>`).join("");
+  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><style>.brand{font:600 26px system-ui,sans-serif;fill:#94a3b8}.title{font:700 58px system-ui,sans-serif;fill:#f8fafc}.description{font:400 26px system-ui,sans-serif;fill:#cbd5e1}</style><rect width="1200" height="630" fill="#0f172a"/><rect x="0" width="12" height="630" fill="${escapeXml(config.accent ?? "#2563eb")}"/><text x="72" y="92" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>${title}${description}</svg>`;
+  return sharp(Buffer.from(svg)).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
+}
+
+export async function generateOgImages(config: UmbracoDocsOgConfig, options: { check?: boolean } = {}): Promise<OgCardInput[]> {
+  const cards = await collectOgCards(config);
+  for (const card of cards) {
+    const output = resolvePublicImagePath(config.publicDir, card.image, config.prefix);
+    const expected = await renderCard(card, config);
+    if (options.check) {
+      let actual: Buffer | undefined;
+      try { actual = await readFile(output); } catch { /* Report as stale below. */ }
+      if (!actual?.equals(expected)) throw new Error(`OG image is missing or stale: ${card.image}`);
+    } else {
+      await mkdir(path.dirname(output), { recursive: true });
+      await writeFile(output, expected);
+    }
+  }
+  return cards;
+}

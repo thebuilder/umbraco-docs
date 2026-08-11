@@ -1,0 +1,10 @@
+---
+interface Props { id: string; title: string; description?: string; align?: "start" | "center"; }
+const { id, title, description, align = "center" } = Astro.props;
+---
+
+<header class:list={["udocs-section-heading", `udocs-section-heading--${align}`]} data-udocs-reveal>
+  <span class="udocs-section-heading__rule" aria-hidden="true"></span>
+  <h2 id={id}>{title}</h2>
+  {description && <p>{description}</p>}
+</header>

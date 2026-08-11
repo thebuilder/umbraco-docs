@@ -1,0 +1,62 @@
+@layer udocs.tokens, udocs.components, udocs.motion;
+
+@layer udocs.tokens {
+  :where([data-udocs-landing], .udocs-ecosystem) {
+    --udocs-accent: var(--blume-accent, #2563eb);
+    --udocs-gradient: linear-gradient(105deg, #60a5fa, #a78bfa 52%, #f472b6);
+    --udocs-border: var(--blume-border, #d4d4d8);
+    --udocs-muted: var(--blume-muted, #f4f4f5);
+    --udocs-muted-foreground: var(--blume-muted-foreground, #52525b);
+    --udocs-foreground: var(--blume-foreground, #18181b);
+    --udocs-radius: var(--blume-radius, 0.5rem);
+  }
+}
+
+@layer udocs.components {
+  .udocs-shell { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
+  .udocs-hero { position: relative; overflow: clip; padding-block: clamp(3rem, 8vw, 6rem); }
+  .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: 40rem; background: radial-gradient(circle at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
+  .udocs-hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
+  .udocs-hero__logo { width: 4.5rem; height: 4.5rem; object-fit: contain; }
+  .udocs-hero__title { max-width: 20ch; margin: 0; font-family: var(--blume-font-display, system-ui); font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
+  .udocs-hero__accent { color: transparent; background: var(--udocs-gradient); background-clip: text; -webkit-background-clip: text; }
+  .udocs-hero__description { max-width: 44rem; margin: 0; color: var(--udocs-muted-foreground); font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
+  .udocs-hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
+  .udocs-hero__compatibility { margin: 0; color: var(--udocs-muted-foreground); font-size: 0.875rem; }
+  .udocs-install { display: inline-flex; align-items: center; max-width: 100%; gap: 0.75rem; padding: 0.55rem 0.6rem 0.55rem 1rem; border: 1px solid var(--udocs-border); border-radius: var(--udocs-radius); background: var(--blume-code-background, var(--udocs-muted)); font-family: var(--blume-font-mono, monospace); font-size: 0.9rem; }
+  .udocs-install > span { color: var(--udocs-muted-foreground); user-select: none; }
+  .udocs-install code { overflow-x: auto; color: var(--udocs-foreground); white-space: nowrap; }
+  .udocs-install button { display: grid; flex: none; width: 2rem; height: 2rem; place-items: center; border: 0; border-radius: var(--udocs-radius); background: transparent; color: var(--udocs-muted-foreground); cursor: pointer; }
+  .udocs-install button:focus-visible { outline: 2px solid var(--udocs-accent); outline-offset: 2px; }
+  .udocs-install button svg { grid-area: 1 / 1; }
+  .udocs-install [data-done-icon] { opacity: 0; }
+  .udocs-install button[data-udocs-copied] [data-copy-icon] { opacity: 0; }
+  .udocs-install button[data-udocs-copied] [data-done-icon] { opacity: 1; color: var(--udocs-accent); }
+  .udocs-section-heading { max-width: 42rem; margin-bottom: 2.5rem; }
+  .udocs-section-heading--center { margin-inline: auto; text-align: center; }
+  .udocs-section-heading__rule { display: block; width: 2.75rem; height: 0.25rem; margin-bottom: 1.15rem; border-radius: 999px; background: var(--udocs-gradient); }
+  .udocs-section-heading--center .udocs-section-heading__rule { margin-inline: auto; }
+  .udocs-section-heading h2 { margin: 0 0 0.75rem; font-family: var(--blume-font-display, system-ui); font-size: clamp(1.7rem, 3.5vw, 2.4rem); line-height: 1.15; text-wrap: balance; }
+  .udocs-section-heading p { margin: 0; color: var(--udocs-muted-foreground); font-size: 1.05rem; line-height: 1.65; }
+  .udocs-screenshot { margin: 2.5rem 0 0; overflow: hidden; border: 1px solid var(--udocs-border); border-radius: calc(var(--udocs-radius) * 1.4); background: var(--udocs-muted); box-shadow: 0 24px 55px -30px color-mix(in oklab, var(--udocs-accent) 40%, transparent); }
+  .udocs-screenshot__bar { display: flex; gap: 0.4rem; padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--udocs-border); }
+  .udocs-screenshot__bar span { width: 0.65rem; height: 0.65rem; border-radius: 50%; background: color-mix(in oklab, var(--udocs-muted-foreground) 40%, transparent); }
+  .udocs-screenshot img { display: block; width: 100%; height: auto; }
+  .udocs-ecosystem { margin-block: clamp(4rem, 9vw, 7rem); }
+  .udocs-ecosystem__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; padding: 0; list-style: none; }
+  .udocs-ecosystem__item { display: grid; grid-template-columns: auto 1fr; gap: 1rem; padding: 1.5rem; border: 1px solid var(--udocs-border); border-radius: calc(var(--udocs-radius) * 1.2); background: color-mix(in oklab, var(--udocs-muted) 40%, transparent); }
+  .udocs-ecosystem__title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .udocs-ecosystem h3, .udocs-ecosystem p { margin: 0; }
+  .udocs-ecosystem__title span { color: var(--udocs-muted-foreground); font-size: 0.75rem; text-transform: capitalize; }
+  .udocs-ecosystem p { margin-block: 0.4rem 0.8rem; color: var(--udocs-muted-foreground); line-height: 1.55; }
+  .udocs-ecosystem a { color: var(--udocs-accent); font-weight: 650; text-decoration: none; }
+  .udocs-ecosystem a:hover { text-decoration: underline; }
+}
+
+@layer udocs.motion {
+  [data-udocs-motion="true"] [data-udocs-reveal] { opacity: 0; transform: translateY(0.75rem); transition: opacity 0.45s ease, transform 0.45s ease; }
+  [data-udocs-motion="true"] [data-udocs-visible="true"] { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    [data-udocs-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+  }
+}

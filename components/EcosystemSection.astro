@@ -1,0 +1,40 @@
+---
+import type { UmbracoPackage } from "../src/package.js";
+import SectionHeading from "./SectionHeading.astro";
+
+interface Props {
+  packages: readonly UmbracoPackage[];
+  currentPackageId?: string;
+  title?: string;
+  description?: string;
+}
+
+const {
+  packages,
+  currentPackageId,
+  title = "More from TheBuilder",
+  description = "Focused packages for modern Umbraco projects.",
+} = Astro.props;
+const visiblePackages = packages.filter((item) => item.id !== currentPackageId);
+---
+
+{visiblePackages.length > 0 && (
+  <section class="udocs-shell udocs-ecosystem" aria-labelledby="udocs-ecosystem-title">
+    <SectionHeading id="udocs-ecosystem-title" title={title} description={description} />
+    <ul class="udocs-ecosystem__list" role="list">
+      {visiblePackages.map((item) => (
+        <li class="udocs-ecosystem__item" data-udocs-reveal>
+          <img src={item.logo} width="48" height="48" alt="" loading="lazy" />
+          <div>
+            <div class="udocs-ecosystem__title">
+              <h3>{item.name}</h3>
+              <span>{item.status}</span>
+            </div>
+            <p>{item.summary}</p>
+            <a href={item.links.docs}>Read the docs <span aria-hidden="true">→</span></a>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

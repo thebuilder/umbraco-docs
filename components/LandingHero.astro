@@ -1,0 +1,27 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  logo: string;
+  logoAlt?: string;
+  accent?: string;
+  compatibility?: string;
+}
+
+const { title, description, logo, logoAlt = "", accent, compatibility } = Astro.props;
+---
+
+<section class="udocs-hero" data-udocs-landing aria-labelledby="udocs-hero-title">
+  <div class="udocs-hero__glow" aria-hidden="true"></div>
+  <div class="udocs-shell udocs-hero__inner">
+    <img class="udocs-hero__logo" src={logo} width="72" height="72" alt={logoAlt} data-udocs-reveal />
+    <h1 id="udocs-hero-title" class="udocs-hero__title" data-udocs-reveal>
+      {title}{accent && <> <span class="udocs-hero__accent">{accent}</span></>}
+    </h1>
+    <p class="udocs-hero__description" data-udocs-reveal>{description}</p>
+    <div class="udocs-hero__actions" data-udocs-reveal><slot name="actions" /></div>
+    <slot name="install" />
+    {compatibility && <p class="udocs-hero__compatibility" data-udocs-reveal>{compatibility}</p>}
+  </div>
+  <slot />
+</section>

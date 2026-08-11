@@ -1,0 +1,34 @@
+---
+// Blume 1.x exposes PageLayout and its generated site data at these stable entry points.
+import PageLayout from "blume/components/layout/PageLayout.astro";
+import data from "blume:data";
+
+interface Props {
+  title: string;
+  description: string;
+  route?: string;
+  ogImage?: string;
+}
+
+const { title, description, route = "/", ogImage } = Astro.props;
+const { config } = data;
+---
+
+<PageLayout
+  site={{ title: config.title, description: config.description }}
+  logo={config.logo}
+  favicon={config.favicon}
+  banner={config.banner}
+  analytics={config.analytics}
+  navigation={data.navigation}
+  fontCssVars={data.fontCssVars}
+  themeMode={config.theme.mode}
+  searchEnabled={config.search.enabled}
+  siteUrl={config.site}
+  ogEnabled={Boolean(ogImage)}
+  ogImage={ogImage}
+  page={{ title, description, route }}
+>
+  <slot />
+  <slot name="footer" slot="footer" />
+</PageLayout>

@@ -1,0 +1,11 @@
+{
+  "name": "@thebuilder/umbraco-docs-fixture-blume-1-2-1",
+  "private": true,
+  "type": "module",
+  "pnpm": { "overrides": { "astro": "7.1.5" } },
+  "scripts": { "build": "blume check --isolated && blume build --isolated" },
+  "dependencies": {
+    "@thebuilder/umbraco-docs": "file:../..",
+    "blume": "1.2.1"
+  }
+}
