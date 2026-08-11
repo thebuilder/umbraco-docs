@@ -19,8 +19,8 @@ importers:
         specifier: ^24.10.1
         version: 24.13.3
       blume:
-        specifier: 1.4.2
-        version: 1.4.2(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@shikijs/themes@4.4.3)(@types/node@24.13.3)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@vercel/functions@3.9.2)(csstype@3.2.3)(esbuild@0.28.2)(prettier@3.9.6)(rollup@4.62.4)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)
+        specifier: 1.4.3
+        version: 1.4.3(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@shikijs/themes@4.4.3)(@types/node@24.13.3)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@vercel/functions@3.9.2)(csstype@3.2.3)(esbuild@0.28.2)(prettier@3.9.6)(rollup@4.62.4)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0)
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -1779,8 +1779,8 @@ packages:
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
 
-  blume@1.4.2:
-    resolution: {integrity: sha512-srlEkfRA7kWi1hV/t4ME81NWSAYe7LdHXAZ+Vv//rQjFTPAXcIQl8G6fCejLolN9XAjFg/m3iLxr43WKBzQKlA==}
+  blume@1.4.3:
+    resolution: {integrity: sha512-anscFFxxzXk6XhqcANpXNScWerTaxtsgPrST++sDth3wqxBzuDEebmgaoI5bFfXSerHoLyC3i5xI44aO/5Kcng==}
     engines: {node: '>=22.12.0'}
     hasBin: true
     peerDependencies:
@@ -2684,6 +2684,10 @@ packages:
   is-hexadecimal@2.0.1:
     resolution: {integrity: sha512-DgZQp241c8oO6cA1SbTEWiXeoxV42vlcJxgH+B3hi1AiqqKruZR3ZGF8In3fj4+/y/7rHvlOZLZtgJ/4ttYGZg==}
 
+  is-network-error@1.3.2:
+    resolution: {integrity: sha512-PhBY86zaxNZUuWP6h13Vu5oFe0XY6/UlKzQnYFELzGVHygP3MxmvTfYSG7GN3aIab/iWudSMgjSnG9Dq+nHrgA==}
+    engines: {node: '>=16'}
+
   is-obj@2.0.0:
     resolution: {integrity: sha512-drqDG3cbczxxEJRoOXcOjtdp1J/lyp1mNn0xaznRs8+muBhgQcrnbspox5X5fOw0HnMnbfDzvnEMEtqDEJEo8w==}
     engines: {node: '>=8'}
@@ -3234,6 +3238,9 @@ packages:
     engines: {node: ^18 || >=20}
     hasBin: true
 
+  nanotar@0.3.0:
+    resolution: {integrity: sha512-Kv2JYYiCzt16Kt5QwAc9BFG89xfPNBx+oQL4GQXD9nLqPkZBiNaqaCWtwnbk/q7UVsTYevvM1b0UF8zmEI4pCg==}
+
   negotiator@1.0.0:
     resolution: {integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==}
     engines: {node: '>= 0.6'}
@@ -3337,9 +3344,17 @@ packages:
     resolution: {integrity: sha512-0trZaiG7Y7kN/Egy9a8j47t9osC0Tch4PaIWd9yGF6bvmlk7muExRvGNYb8sXBwEKMoNKsbNN9P8EefuQekE4Q==}
     engines: {node: '>=20'}
 
+  p-map@7.0.6:
+    resolution: {integrity: sha512-I4Prw6ivkd6p8PiYR1tXASOAOBzIJwu0TB7fqaX0c/8c3QAehNYmX57EijyGGGBt3c/BIowGwV03RVBtXvHEVg==}
+    engines: {node: '>=18'}
+
   p-queue@9.3.3:
     resolution: {integrity: sha512-NXAOdnEe5FsZJfT4oK84lE1Y5cFFdWlRuOo5tww8DyNMxyRXwn39fIkUtNLKppcPC+UYU/bXujNCUGDv01y7CA==}
     engines: {node: '>=20'}
+
+  p-retry@8.0.0:
+    resolution: {integrity: sha512-kFVqH1HxOHp8LupNsOys7bSV09VYTRLxarH/mokO4Rqhk6wGi70E0jh4VzvVGXfEVNggHoHLAMWsQqHyU1Ey9A==}
+    engines: {node: '>=22'}
 
   p-timeout@7.0.1:
     resolution: {integrity: sha512-AxTM2wDGORHGEkPCt8yqxOTMgpfbEHqF51f/5fJCmwFC3C/zNcGT63SymH2ttOAaiIws2zVg4+izQCjrakcwHg==}
@@ -3397,6 +3412,9 @@ packages:
 
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
+  perfect-debounce@2.1.0:
+    resolution: {integrity: sha512-LjgdTytVFXeUgtHZr9WYViYSM/g8MkcTPYDlPa3cDqMirHjKiSZPYd6DoL7pK8AJQr+uWkQvCjHNdiMqsrJs+g==}
 
   piccolore@0.1.3:
     resolution: {integrity: sha512-o8bTeDWjE086iwKrROaDf31K0qC/BENdm15/uH9usSC/uZjJOKb2YGiVHfLY4GhwsERiPI1jmwI2XrA7ACOxVw==}
@@ -5967,7 +5985,7 @@ snapshots:
     dependencies:
       file-uri-to-path: 1.0.0
 
-  blume@1.4.2(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@shikijs/themes@4.4.3)(@types/node@24.13.3)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@vercel/functions@3.9.2)(csstype@3.2.3)(esbuild@0.28.2)(prettier@3.9.6)(rollup@4.62.4)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0):
+  blume@1.4.3(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@shikijs/themes@4.4.3)(@types/node@24.13.3)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(@vercel/functions@3.9.2)(csstype@3.2.3)(esbuild@0.28.2)(prettier@3.9.6)(rollup@4.62.4)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))(yaml@2.9.0):
     dependencies:
       '@astrojs/check': 0.9.10(prettier@3.9.6)(typescript@6.0.3)
       '@astrojs/markdown-satteri': 0.3.5
@@ -5989,6 +6007,7 @@ snapshots:
       '@shikijs/twoslash': 4.4.3(typescript@6.0.3)
       '@tailwindcss/typography': 0.5.20(tailwindcss@4.3.3)
       '@tailwindcss/vite': 4.3.3(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
+      '@types/mdast': 4.0.4
       '@vercel/analytics': 2.0.1(react@19.2.8)
       ai: 7.0.59(zod@4.4.3)
       astro: 7.2.0(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(@vercel/functions@3.9.2)(jiti@2.7.0)(yaml@2.9.0)
@@ -5996,6 +6015,7 @@ snapshots:
       chokidar: 5.0.0
       citty: 0.1.6
       consola: 3.4.2
+      cross-spawn: 7.0.6
       dompurify: 3.4.13
       dotenv: 17.4.2
       epub-gen-memory: 1.1.2
@@ -6016,10 +6036,16 @@ snapshots:
       medium-zoom: 1.1.0
       mermaid: 11.16.1
       micromark-extension-gfm: 3.0.0
+      nanotar: 0.3.0
       node-html-parser: 9.0.1
       openapi-sampler: 1.7.4
+      p-limit: 7.3.1
+      p-map: 7.0.6
+      p-retry: 8.0.0
+      package-manager-detector: 1.8.0
       pagefind: 1.5.2
       pathe: 2.0.3
+      perfect-debounce: 2.1.0
       picomatch: 4.0.5
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -6034,6 +6060,7 @@ snapshots:
       tinyglobby: 0.2.17
       twoslash: 0.3.9(typescript@6.0.3)
       typescript: 6.0.3
+      ufo: 1.6.4
       undici: 8.10.0
       write-file-atomic: 8.0.0
       zod: 4.4.3
@@ -7106,6 +7133,8 @@ snapshots:
 
   is-hexadecimal@2.0.1: {}
 
+  is-network-error@1.3.2: {}
+
   is-obj@2.0.0: {}
 
   is-plain-obj@4.1.0: {}
@@ -7836,6 +7865,8 @@ snapshots:
 
   nanoid@5.1.16: {}
 
+  nanotar@0.3.0: {}
+
   negotiator@1.0.0: {}
 
   neotraverse@1.0.1: {}
@@ -7929,10 +7960,16 @@ snapshots:
     dependencies:
       yocto-queue: 1.2.2
 
+  p-map@7.0.6: {}
+
   p-queue@9.3.3:
     dependencies:
       eventemitter3: 5.0.4
       p-timeout: 7.0.1
+
+  p-retry@8.0.0:
+    dependencies:
+      is-network-error: 1.3.2
 
   p-timeout@7.0.1: {}
 
@@ -7995,6 +8032,8 @@ snapshots:
   path-to-regexp@8.4.2: {}
 
   pathe@2.0.3: {}
+
+  perfect-debounce@2.1.0: {}
 
   piccolore@0.1.3: {}
 

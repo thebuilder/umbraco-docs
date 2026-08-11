@@ -28,7 +28,19 @@ export const packageManifest = defineUmbracoPackage({
 });
 ```
 
-Astro consumers can import individual components from `@thebuilder/umbraco-docs/components/*` and the scoped cascade-layer stylesheet from `@thebuilder/umbraco-docs/styles/landing.css`.
+Astro consumers can import individual components from `@thebuilder/umbraco-docs/components/*`. Wrap composed landing content in `LandingRoot`; it owns the scoped cascade-layer stylesheet plus clipboard and reduced-motion-safe reveal behavior.
+
+```astro
+---
+import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-docs/astro";
+---
+
+<LandingRoot>
+  <LandingHero title="Example" description="A focused Umbraco package." logo="/logo.svg">
+    <InstallCommand slot="install" command="dotnet add package TheBuilder.Example" />
+  </LandingHero>
+</LandingRoot>
+```
 
 ## Open Graph images
 

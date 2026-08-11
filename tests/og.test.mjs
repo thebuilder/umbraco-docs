@@ -35,3 +35,20 @@ test("public output paths cannot escape the configured prefix", () => {
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/other/card.png", "/og"), /Unsafe/);
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/og/../card.png", "/og"), /Unsafe/);
 });
+
+test("OG discovery rejects incomplete opted-in frontmatter", async () => {
+  const config = await fixture();
+  await writeFile(path.join(config.contentDir, "invalid.mdx"), `---\ntitle: Missing description\nseo:\n  image: /og/invalid.png\n---\n`);
+  await assert.rejects(collectOgCards(config), /invalid\.mdx: description must be a non-empty string/);
+});
+
+test("OG discovery rejects duplicate output paths before rendering", async () => {
+  const config = await fixture();
+  await writeFile(path.join(config.contentDir, "duplicate.md"), `---\ntitle: Duplicate\ndescription: Duplicate output.\nseo:\n  image: /og/quickstart.png\n---\n`);
+  await assert.rejects(collectOgCards(config), /Duplicate OG image path: \/og\/quickstart\.png/);
+});
+
+test("OG config validation rejects unsafe prefixes", async () => {
+  const config = await fixture();
+  await assert.rejects(collectOgCards({ ...config, prefix: "/og/../outside" }), /prefix must be a safe absolute public path/);
+});

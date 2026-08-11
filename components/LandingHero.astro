@@ -11,7 +11,7 @@ interface Props {
 const { title, description, logo, logoAlt = "", accent, compatibility } = Astro.props;
 ---
 
-<section class="udocs-hero" data-udocs-landing aria-labelledby="udocs-hero-title">
+<section class="udocs-hero" aria-labelledby="udocs-hero-title">
   <div class="udocs-hero__glow" aria-hidden="true"></div>
   <div class="udocs-shell udocs-hero__inner">
     <img class="udocs-hero__logo" src={logo} width="72" height="72" alt={logoAlt} data-udocs-reveal />

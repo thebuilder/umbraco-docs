@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import sharp from "sharp";
 import type { OgCardInput, UmbracoDocsOgConfig } from "./types.js";
+import { validateOgConfig } from "./types.js";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -43,20 +44,34 @@ async function contentFiles(directory: string): Promise<string[]> {
 }
 
 export async function collectOgCards(config: UmbracoDocsOgConfig): Promise<OgCardInput[]> {
-  const prefix = config.prefix ?? "/social";
+  const validated = validateOgConfig(config);
+  return collectValidatedOgCards(validated);
+}
+
+async function collectValidatedOgCards(validated: UmbracoDocsOgConfig): Promise<OgCardInput[]> {
+  const prefix = validated.prefix ?? "/social";
   const cards: OgCardInput[] = [{
-    title: config.root.title,
-    description: config.root.description,
-    image: config.root.image ?? `${prefix}/index.png`,
+    title: validated.root.title,
+    description: validated.root.description,
+    image: validated.root.image ?? `${prefix}/index.png`,
   }];
-  for (const file of await contentFiles(config.contentDir)) {
+  for (const file of await contentFiles(validated.contentDir)) {
     const { data } = matter(await readFile(file, "utf8"));
     const image = data.seo?.image;
-    if (typeof data.title === "string" && typeof data.description === "string" && typeof image === "string") {
-      cards.push({ title: data.title, description: data.description, image });
-    }
+    if (image === undefined) continue;
+    if (typeof image !== "string") throw new TypeError(`${file}: seo.image must be a string`);
+    if (typeof data.title !== "string" || !data.title.trim()) throw new TypeError(`${file}: title must be a non-empty string when seo.image is set`);
+    if (typeof data.description !== "string" || !data.description.trim()) throw new TypeError(`${file}: description must be a non-empty string when seo.image is set`);
+    cards.push({ title: data.title, description: data.description, image });
   }
-  return cards.sort((a, b) => a.image.localeCompare(b.image));
+
+  const byImage = new Map<string, OgCardInput>();
+  for (const card of cards) {
+    resolvePublicImagePath(validated.publicDir, card.image, prefix);
+    if (byImage.has(card.image)) throw new TypeError(`Duplicate OG image path: ${card.image}`);
+    byImage.set(card.image, card);
+  }
+  return [...byImage.values()].sort((a, b) => a.image.localeCompare(b.image));
 }
 
 async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promise<Buffer> {
@@ -68,18 +83,25 @@ async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promi
 }
 
 export async function generateOgImages(config: UmbracoDocsOgConfig, options: { check?: boolean } = {}): Promise<OgCardInput[]> {
-  const cards = await collectOgCards(config);
-  for (const card of cards) {
-    const output = resolvePublicImagePath(config.publicDir, card.image, config.prefix);
-    const expected = await renderCard(card, config);
-    if (options.check) {
+  const validated = validateOgConfig(config);
+  const cards = await collectValidatedOgCards(validated);
+  const outputs = await Promise.all(cards.map(async (card) => ({
+    card,
+    output: resolvePublicImagePath(validated.publicDir, card.image, validated.prefix),
+    expected: await renderCard(card, validated),
+  })));
+
+  if (options.check) {
+    await Promise.all(outputs.map(async ({ card, output, expected }) => {
       let actual: Buffer | undefined;
       try { actual = await readFile(output); } catch { /* Report as stale below. */ }
       if (!actual?.equals(expected)) throw new Error(`OG image is missing or stale: ${card.image}`);
-    } else {
+    }));
+  } else {
+    await Promise.all(outputs.map(async ({ output, expected }) => {
       await mkdir(path.dirname(output), { recursive: true });
       await writeFile(output, expected);
-    }
+    }));
   }
   return cards;
 }

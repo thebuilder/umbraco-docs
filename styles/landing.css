@@ -1,7 +1,7 @@
 @layer udocs.tokens, udocs.components, udocs.motion;
 
 @layer udocs.tokens {
-  :where([data-udocs-landing], .udocs-ecosystem) {
+  :where([data-udocs-root]) {
     --udocs-accent: var(--blume-accent, #2563eb);
     --udocs-gradient: linear-gradient(105deg, #60a5fa, #a78bfa 52%, #f472b6);
     --udocs-border: var(--blume-border, #d4d4d8);
@@ -14,6 +14,7 @@
 
 @layer udocs.components {
   .udocs-shell { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
+  .udocs-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .udocs-hero { position: relative; overflow: clip; padding-block: clamp(3rem, 8vw, 6rem); }
   .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: 40rem; background: radial-gradient(circle at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
   .udocs-hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }

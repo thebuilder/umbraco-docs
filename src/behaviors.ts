@@ -1,10 +1,10 @@
 const initialized = new WeakSet<HTMLElement>();
 
 export function initializeUmbracoDocs(root: ParentNode = document): void {
-  const landing = root.querySelector<HTMLElement>("[data-udocs-landing]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  if (landing && !initialized.has(landing)) {
+  for (const landing of root.querySelectorAll<HTMLElement>("[data-udocs-root]")) {
+    if (initialized.has(landing)) continue;
     initialized.add(landing);
     const reveals = landing.querySelectorAll<HTMLElement>("[data-udocs-reveal]");
     if (!reducedMotion && "IntersectionObserver" in window) {
@@ -20,21 +20,25 @@ export function initializeUmbracoDocs(root: ParentNode = document): void {
     } else {
       reveals.forEach((element) => { element.dataset.udocsVisible = "true"; });
     }
-  }
 
-  root.querySelectorAll<HTMLButtonElement>("[data-udocs-copy]").forEach((button) => {
-    if (initialized.has(button)) return;
-    initialized.add(button);
-    button.addEventListener("click", async () => {
-      const value = button.dataset.udocsCopy;
-      if (!value) return;
-      try {
-        await navigator.clipboard.writeText(value);
-        button.dataset.udocsCopied = "true";
-        window.setTimeout(() => { delete button.dataset.udocsCopied; }, 1600);
-      } catch {
-        button.dataset.udocsCopyFailed = "true";
-      }
+    landing.querySelectorAll<HTMLButtonElement>("[data-udocs-copy]").forEach((button) => {
+      const status = button.parentElement?.querySelector<HTMLElement>("[data-udocs-copy-status]");
+      button.addEventListener("click", async () => {
+        const value = button.dataset.udocsCopy;
+        if (!value) return;
+        try {
+          await navigator.clipboard.writeText(value);
+          button.dataset.udocsCopied = "true";
+          if (status) status.textContent = "Copied";
+          window.setTimeout(() => {
+            delete button.dataset.udocsCopied;
+            if (status) status.textContent = "";
+          }, 1600);
+        } catch {
+          button.dataset.udocsCopyFailed = "true";
+          if (status) status.textContent = "Copy failed. Select and copy the command manually.";
+        }
+      });
     });
-  });
+  }
 }

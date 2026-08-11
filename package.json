@@ -1,9 +1,16 @@
 {
   "name": "@thebuilder/umbraco-docs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Composable Blume presentation and metadata contracts for TheBuilder Umbraco package documentation.",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebuilder/umbraco-docs.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=22.12"
   },
@@ -48,11 +55,11 @@
     "sharp": "0.35.3"
   },
   "peerDependencies": {
-    "blume": ">=1.2.1 <2"
+    "blume": ">=1.4.3 <2"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
-    "blume": "1.4.2",
+    "blume": "1.4.3",
     "typescript": "^5.9.2"
   }
 }
