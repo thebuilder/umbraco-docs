@@ -44,7 +44,20 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 
 ## Open Graph images
 
-Create `umbraco-docs.config.mjs` with content/public directories, a `/social` or `/og` prefix, and root card copy. Pages opt in with Blume-native `title`, `description`, and `seo.image` frontmatter. Then run:
+Create `umbraco-docs.config.mjs` with content/public directories, a `/social` or `/og` prefix, root card copy, and the product logo/domain to render into each card. Pages opt in with Blume-native `title`, `description`, and `seo.image` frontmatter.
+
+```js
+export default defineOgConfig({
+  contentDir: new URL("./content", import.meta.url).pathname,
+  publicDir: new URL("./public", import.meta.url).pathname,
+  prefix: "/og",
+  logo: "/logo.svg",
+  site: "docs.example.com",
+  root: { title: "Example", description: "A focused Umbraco package." },
+});
+```
+
+Then run:
 
 ```sh
 pnpm exec umbraco-docs-og

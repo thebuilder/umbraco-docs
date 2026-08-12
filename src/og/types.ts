@@ -15,6 +15,8 @@ export interface UmbracoDocsOgConfig {
   root: OgRootCard;
   brand?: string;
   accent?: string;
+  logo?: `/${string}`;
+  site?: string;
 }
 
 function isSafePrefix(value: string): value is `/${string}` {
@@ -28,6 +30,12 @@ function requirePrefix(value: unknown): `/${string}` {
     throw new TypeError("prefix must be a safe absolute public path such as /og or /social");
   }
   return prefix;
+}
+
+function requirePublicAssetPath(value: unknown, name: string): `/${string}` {
+  const asset = requireString(value, name);
+  if (!isSafePrefix(asset)) throw new TypeError(`${name} must be a safe absolute public path`);
+  return asset;
 }
 
 export function validateOgConfig(value: unknown): UmbracoDocsOgConfig {
@@ -46,6 +54,8 @@ export function validateOgConfig(value: unknown): UmbracoDocsOgConfig {
     }),
     ...(input.brand === undefined ? {} : { brand: requireString(input.brand, "brand") }),
     ...(input.accent === undefined ? {} : { accent: requireString(input.accent, "accent") }),
+    ...(input.logo === undefined ? {} : { logo: requirePublicAssetPath(input.logo, "logo") }),
+    ...(input.site === undefined ? {} : { site: requireString(input.site, "site") }),
   });
 }
 

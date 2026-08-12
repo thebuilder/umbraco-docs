@@ -23,6 +23,13 @@ function wrap(value: string, max = 42): string[] {
   return lines.slice(0, 3);
 }
 
+function resolvePublicAssetPath(publicDir: string, asset: string): string {
+  const root = path.resolve(publicDir);
+  const output = path.resolve(root, `.${asset}`);
+  if (!output.startsWith(`${root}${path.sep}`)) throw new TypeError(`Asset escapes public directory: ${asset}`);
+  return output;
+}
+
 export function resolvePublicImagePath(publicDir: string, image: string, prefix = "/social"): string {
   if (!image.startsWith(`${prefix}/`) || !image.endsWith(".png") || image.includes("\\") || image.split("/").includes("..")) {
     throw new TypeError(`Unsafe OG image path ${image}; expected a .png below ${prefix}/`);
@@ -75,11 +82,21 @@ async function collectValidatedOgCards(validated: UmbracoDocsOgConfig): Promise<
 }
 
 async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promise<Buffer> {
-  const titleLines = wrap(card.title);
-  const title = titleLines.map((line, index) => `<text x="72" y="${220 + index * 74}" class="title">${escapeXml(line)}</text>`).join("");
-  const description = wrap(card.description, 72).slice(0, 2).map((line, index) => `<text x="72" y="${480 + index * 34}" class="description">${escapeXml(line)}</text>`).join("");
-  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><style>.brand{font:600 26px system-ui,sans-serif;fill:#94a3b8}.title{font:700 58px system-ui,sans-serif;fill:#f8fafc}.description{font:400 26px system-ui,sans-serif;fill:#cbd5e1}</style><rect width="1200" height="630" fill="#0f172a"/><rect x="0" width="12" height="630" fill="${escapeXml(config.accent ?? "#2563eb")}"/><text x="72" y="92" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>${title}${description}</svg>`;
-  return sharp(Buffer.from(svg)).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
+  const titleLines = wrap(card.title, 24).slice(0, 2);
+  const titleSize = card.title.length > 23 ? 72 : 82;
+  const titleY = 356 - (titleLines.length - 1) * 38;
+  const title = titleLines.map((line, index) => `<text x="82" y="${titleY + index * 78}" class="title">${escapeXml(line)}</text>`).join("");
+  const descriptionY = titleY + titleLines.length * 78 + 38;
+  const description = wrap(card.description, 58).slice(0, 3).map((line, index) => `<text x="82" y="${descriptionY + index * 40}" class="description">${escapeXml(line)}</text>`).join("");
+  const accent = escapeXml(config.accent ?? "#60a5fa");
+  const footer = config.site ?? config.brand ?? "TheBuilder · Umbraco";
+  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35"/><stop offset="0.56" stop-color="#090e1d"/><stop offset="1" stop-color="#05060c"/></linearGradient><radialGradient id="glow" cx="0.2" cy="-0.08" r="0.9"><stop offset="0" stop-color="${accent}" stop-opacity="0.45"/><stop offset="0.46" stop-color="#6366f1" stop-opacity="0.12"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="0.5" stop-color="#9b83ec"/><stop offset="1" stop-color="#ed63ad"/></linearGradient></defs><style>.brand{font:600 26px system-ui,sans-serif;fill:#aab2c5}.title{font:800 ${titleSize}px system-ui,sans-serif;letter-spacing:-2px;fill:#f8fafc}.description{font:400 32px system-ui,sans-serif;fill:#aab2c5}.footer{font:600 26px system-ui,sans-serif;fill:#6f7a91}</style><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#background)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/><rect width="${WIDTH}" height="6" fill="url(#accent)"/>${config.logo ? "" : `<text x="82" y="112" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>`}${title}${description}<text x="82" y="566" class="footer">${escapeXml(footer)}</text></svg>`;
+  const composites = config.logo ? [{
+    input: await sharp(await readFile(resolvePublicAssetPath(config.publicDir, config.logo))).resize(136, 136, { fit: "contain" }).png().toBuffer(),
+    left: 78,
+    top: 92,
+  }] : [];
+  return sharp(Buffer.from(svg)).composite(composites).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
 }
 
 export async function generateOgImages(config: UmbracoDocsOgConfig, options: { check?: boolean } = {}): Promise<OgCardInput[]> {

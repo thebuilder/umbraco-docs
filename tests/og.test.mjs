@@ -31,6 +31,19 @@ test("OG generation is deterministic and check mode detects drift", async () => 
   await assert.rejects(generateOgImages(config, { check: true }), /missing or stale/);
 });
 
+test("OG generation composes the configured product logo", async () => {
+  const config = await fixture();
+  await mkdir(config.publicDir, { recursive: true });
+  await writeFile(path.join(config.publicDir, "logo.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#f472b6"/></svg>`);
+
+  await generateOgImages({ ...config, logo: "/logo.svg", site: "example.com" });
+  const withLogo = await readFile(path.join(config.publicDir, "og", "index.png"));
+  await generateOgImages({ ...config, site: "example.com" });
+  const withoutLogo = await readFile(path.join(config.publicDir, "og", "index.png"));
+
+  assert.notDeepEqual(withLogo, withoutLogo);
+});
+
 test("public output paths cannot escape the configured prefix", () => {
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/other/card.png", "/og"), /Unsafe/);
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/og/../card.png", "/og"), /Unsafe/);
@@ -51,4 +64,5 @@ test("OG discovery rejects duplicate output paths before rendering", async () =>
 test("OG config validation rejects unsafe prefixes", async () => {
   const config = await fixture();
   await assert.rejects(collectOgCards({ ...config, prefix: "/og/../outside" }), /prefix must be a safe absolute public path/);
+  await assert.rejects(collectOgCards({ ...config, logo: "/../logo.svg" }), /logo must be a safe absolute public path/);
 });
