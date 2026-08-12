@@ -36,9 +36,9 @@ test("OG generation composes the configured product logo", async () => {
   await mkdir(config.publicDir, { recursive: true });
   await writeFile(path.join(config.publicDir, "logo.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><rect width="32" height="32" fill="#f472b6"/></svg>`);
 
-  await generateOgImages({ ...config, logo: "/logo.svg", site: "example.com" });
+  await generateOgImages({ ...config, logo: "/logo.svg" });
   const withLogo = await readFile(path.join(config.publicDir, "og", "index.png"));
-  await generateOgImages({ ...config, site: "example.com" });
+  await generateOgImages(config);
   const withoutLogo = await readFile(path.join(config.publicDir, "og", "index.png"));
 
   assert.notDeepEqual(withLogo, withoutLogo);

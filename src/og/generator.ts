@@ -84,17 +84,16 @@ async function collectValidatedOgCards(validated: UmbracoDocsOgConfig): Promise<
 async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promise<Buffer> {
   const titleLines = wrap(card.title, 24).slice(0, 2);
   const titleSize = card.title.length > 23 ? 72 : 82;
-  const titleY = 356 - (titleLines.length - 1) * 38;
+  const titleY = 340 - (titleLines.length - 1) * 62;
   const title = titleLines.map((line, index) => `<text x="82" y="${titleY + index * 78}" class="title">${escapeXml(line)}</text>`).join("");
-  const descriptionY = titleY + titleLines.length * 78 + 38;
-  const description = wrap(card.description, 58).slice(0, 3).map((line, index) => `<text x="82" y="${descriptionY + index * 40}" class="description">${escapeXml(line)}</text>`).join("");
+  const descriptionY = titleY + (titleLines.length - 1) * 78 + 76;
+  const description = wrap(card.description, 52).slice(0, 3).map((line, index) => `<text x="82" y="${descriptionY + index * 46}" class="description">${escapeXml(line)}</text>`).join("");
   const accent = escapeXml(config.accent ?? "#60a5fa");
-  const footer = config.site ?? config.brand ?? "TheBuilder · Umbraco";
-  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35"/><stop offset="0.56" stop-color="#090e1d"/><stop offset="1" stop-color="#05060c"/></linearGradient><radialGradient id="glow" cx="0.2" cy="-0.08" r="0.9"><stop offset="0" stop-color="${accent}" stop-opacity="0.45"/><stop offset="0.46" stop-color="#6366f1" stop-opacity="0.12"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="0.5" stop-color="#9b83ec"/><stop offset="1" stop-color="#ed63ad"/></linearGradient></defs><style>.brand{font:600 26px system-ui,sans-serif;fill:#aab2c5}.title{font:800 ${titleSize}px system-ui,sans-serif;letter-spacing:-2px;fill:#f8fafc}.description{font:400 32px system-ui,sans-serif;fill:#aab2c5}.footer{font:600 26px system-ui,sans-serif;fill:#6f7a91}</style><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#background)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/><rect width="${WIDTH}" height="6" fill="url(#accent)"/>${config.logo ? "" : `<text x="82" y="112" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>`}${title}${description}<text x="82" y="566" class="footer">${escapeXml(footer)}</text></svg>`;
+  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35"/><stop offset="0.56" stop-color="#090e1d"/><stop offset="1" stop-color="#05060c"/></linearGradient><radialGradient id="glow" cx="0.2" cy="-0.08" r="0.9"><stop offset="0" stop-color="${accent}" stop-opacity="0.45"/><stop offset="0.46" stop-color="#6366f1" stop-opacity="0.12"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="0.5" stop-color="#9b83ec"/><stop offset="1" stop-color="#ed63ad"/></linearGradient></defs><style>.brand{font:600 26px system-ui,sans-serif;fill:#aab2c5}.title{font:800 ${titleSize}px system-ui,sans-serif;letter-spacing:-2px;fill:#f8fafc}.description{font:400 38px system-ui,sans-serif;fill:#aab2c5}</style><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#background)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/><rect width="${WIDTH}" height="6" fill="url(#accent)"/>${config.logo ? "" : `<text x="82" y="112" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>`}${title}${description}</svg>`;
   const composites = config.logo ? [{
     input: await sharp(await readFile(resolvePublicAssetPath(config.publicDir, config.logo))).resize(136, 136, { fit: "contain" }).png().toBuffer(),
     left: 78,
-    top: 92,
+    top: 78,
   }] : [];
   return sharp(Buffer.from(svg)).composite(composites).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
 }

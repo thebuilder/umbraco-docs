@@ -16,7 +16,6 @@ export interface UmbracoDocsOgConfig {
   brand?: string;
   accent?: string;
   logo?: `/${string}`;
-  site?: string;
 }
 
 function isSafePrefix(value: string): value is `/${string}` {
@@ -55,7 +54,6 @@ export function validateOgConfig(value: unknown): UmbracoDocsOgConfig {
     ...(input.brand === undefined ? {} : { brand: requireString(input.brand, "brand") }),
     ...(input.accent === undefined ? {} : { accent: requireString(input.accent, "accent") }),
     ...(input.logo === undefined ? {} : { logo: requirePublicAssetPath(input.logo, "logo") }),
-    ...(input.site === undefined ? {} : { site: requireString(input.site, "site") }),
   });
 }
 
