@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
-    "blume": "1.4.3",
+    "blume": "1.6.4",
     "typescript": "^5.9.2"
   }
 }
