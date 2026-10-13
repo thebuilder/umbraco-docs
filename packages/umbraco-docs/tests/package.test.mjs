@@ -31,6 +31,8 @@ test("defineUmbracoPackage preserves typed product facts", () => {
 test("defineUmbracoPackage rejects unsafe links and logo paths", () => {
   assert.throws(() => defineUmbracoPackage({ ...valid, logo: "logo.svg" }), /public-root path/);
   assert.throws(() => defineUmbracoPackage({ ...valid, logo: "//example.com/logo.svg" }), /public-root path/);
+  assert.throws(() => defineUmbracoPackage({ ...valid, logo: "http://example.com/logo.svg" }), /public-root path/);
+  assert.equal(defineUmbracoPackage({ ...valid, logo: "https://example.com/logo.svg" }).logo, "https://example.com/logo.svg");
   assert.throws(() => defineUmbracoPackage({ ...valid, links: { ...valid.links, docs: "http://example.com" } }), /absolute https URL/);
 });
 

@@ -46,6 +46,25 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 </LandingRoot>
 ```
 
+## Related packages
+
+`loadUmbracoPackages()` reads the package list published at [umbraco.thebuilder.dk/packages.json](https://umbraco.thebuilder.dk/packages.json) during the build, so every docs site shows the current set of packages without keeping its own copy. Pass the result to `EcosystemSection`, which leaves out the current package.
+
+```astro
+---
+import { loadUmbracoPackages } from "@thebuilder/umbraco-docs";
+import { EcosystemSection } from "@thebuilder/umbraco-docs/astro";
+
+const packages = await loadUmbracoPackages();
+---
+
+<EcosystemSection packages={packages} currentPackageId="thebuilder.example" />
+```
+
+A build never fails because the hub can't be reached. The loader logs a warning and returns `fallback` (an empty list by default, which hides the section), and it skips any entry that fails validation. Options: `url`, `fallback`, and `timeoutMs` (10 seconds by default).
+
+Package logos can be a public-root path like `/logo.svg` or an absolute https URL, as the hub uses.
+
 ## Open Graph images
 
 Create `umbraco-docs.config.mjs` with content/public directories, a `/social` or `/og` prefix, root card copy, and the product logo to render into each card. Pages opt in with Blume-native `title`, `description`, and `seo.image` frontmatter.
