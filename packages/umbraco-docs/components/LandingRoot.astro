@@ -6,6 +6,16 @@ const { class: className } = Astro.props;
 ---
 
 <div class:list={["udocs-landing", className]} data-udocs-root>
+  <script is:inline>
+    // Hide reveal targets before they first paint, so they animate in rather than out. The reveal
+    // behavior takes over when it loads; if it never does, show everything instead.
+    (() => {
+      const root = document.currentScript.parentElement;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) return;
+      root.dataset.udocsMotion = "true";
+      setTimeout(() => { if (!root.dataset.udocsObserved) root.dataset.udocsMotion = "false"; }, 3000);
+    })();
+  </script>
   <slot />
 </div>
 

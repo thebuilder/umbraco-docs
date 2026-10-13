@@ -2,7 +2,7 @@
 interface Props {
   title: string;
   description: string;
-  logo: string;
+  logo?: string;
   logoAlt?: string;
   accent?: string;
   compatibility?: string;
@@ -12,9 +12,10 @@ const { title, description, logo, logoAlt = "", accent, compatibility } = Astro.
 ---
 
 <section class="udocs-hero" aria-labelledby="udocs-hero-title">
+  <slot name="background" />
   <div class="udocs-hero__glow" aria-hidden="true"></div>
   <div class="udocs-shell udocs-hero__inner">
-    <img class="udocs-hero__logo" src={logo} width="72" height="72" alt={logoAlt} data-udocs-reveal />
+    {logo && <img class="udocs-hero__logo" src={logo} width="72" height="72" alt={logoAlt} data-udocs-reveal />}
     <h1 id="udocs-hero-title" class="udocs-hero__title" data-udocs-reveal>
       {title}{accent && <> <span class="udocs-hero__accent">{accent}</span></>}
     </h1>

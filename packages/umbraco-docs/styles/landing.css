@@ -62,7 +62,8 @@
 
 @layer udocs.motion {
   [data-udocs-motion="true"] [data-udocs-reveal] { opacity: 0; transform: translateY(0.75rem); transition: opacity 0.45s ease, transform 0.45s ease; }
-  [data-udocs-motion="true"] [data-udocs-visible="true"] { opacity: 1; transform: none; }
+  /* Only the way in waits. The stagger comes from the reveal behavior; a host can add an offset, for example to wait for its own intro. */
+  [data-udocs-motion="true"] [data-udocs-visible="true"] { opacity: 1; transform: none; transition-delay: calc(var(--udocs-reveal-offset, 0ms) + var(--udocs-reveal-stagger, 0ms)); }
   @media (prefers-reduced-motion: reduce) {
     [data-udocs-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
     .udocs-ecosystem__card, .udocs-ecosystem__title svg { transition: none; }

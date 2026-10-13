@@ -46,6 +46,10 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 </LandingRoot>
 ```
 
+`logo` is optional. A hero can also draw its own background, such as a canvas, through the `background` slot, which renders behind the glow and the content.
+
+Elements that come into view together reveal one after another, 60ms apart. To hold reveals back, for example until a background intro gets going, set `--udocs-reveal-offset` on a container, such as `.udocs-hero__inner { --udocs-reveal-offset: 300ms; }`.
+
 ## Related packages
 
 `loadUmbracoPackages()` reads the package list published at [umbraco.thebuilder.dk/packages.json](https://umbraco.thebuilder.dk/packages.json) during the build, so every docs site shows the current set of packages without keeping its own copy. Pass the result to `EcosystemSection`, which leaves out the current package.

@@ -1,4 +1,7 @@
 const initialized = new WeakSet<HTMLElement>();
+const STAGGER_MS = 60;
+// Caps the wait for the last element of a large batch at 360ms.
+const MAX_STAGGER_STEPS = 6;
 
 export function initializeUmbracoDocs(root: ParentNode = document): void {
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -7,13 +10,21 @@ export function initializeUmbracoDocs(root: ParentNode = document): void {
     if (initialized.has(landing)) continue;
     initialized.add(landing);
     const reveals = landing.querySelectorAll<HTMLElement>("[data-udocs-reveal]");
-    if (!reducedMotion && "IntersectionObserver" in window) {
+    // LandingRoot hid the reveal targets before first paint. If this ran too late, it already gave
+    // up and showed them, and hiding them again now would fade visible content out.
+    const gaveUp = landing.dataset.udocsMotion === "false";
+    if (!reducedMotion && !gaveUp && "IntersectionObserver" in window) {
       landing.dataset.udocsMotion = "true";
+      landing.dataset.udocsObserved = "true";
       const observer = new IntersectionObserver((entries) => {
+        // Elements that come into view together ripple in, in page order, instead of landing as one block.
+        let order = 0;
         for (const entry of entries) {
           if (!entry.isIntersecting) continue;
-          (entry.target as HTMLElement).dataset.udocsVisible = "true";
-          observer.unobserve(entry.target);
+          const element = entry.target as HTMLElement;
+          element.style.setProperty("--udocs-reveal-stagger", `${Math.min(order++, MAX_STAGGER_STEPS) * STAGGER_MS}ms`);
+          element.dataset.udocsVisible = "true";
+          observer.unobserve(element);
         }
       }, { rootMargin: "0px 0px -10%", threshold: 0.1 });
       reveals.forEach((element) => observer.observe(element));
