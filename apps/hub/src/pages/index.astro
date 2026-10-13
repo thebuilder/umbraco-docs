@@ -1,0 +1,67 @@
+---
+// Per-component imports: the "./astro" barrel also exports PageShell, which needs Blume.
+import LandingHero from "@thebuilder/umbraco-docs/components/LandingHero";
+import LandingRoot from "@thebuilder/umbraco-docs/components/LandingRoot";
+import SectionHeading from "@thebuilder/umbraco-docs/components/SectionHeading";
+
+import Layout from "../layouts/Layout.astro";
+import { docsLabel, formatUmbraco, statusLabels } from "../format.ts";
+import { packages } from "../packages.ts";
+import { tagline } from "../site.ts";
+
+const profileUrl = "https://github.com/thebuilder";
+---
+
+<Layout
+  title="Umbraco packages curated by TheBuilder"
+  description={tagline}
+  ogImage="/og/index.png"
+>
+  <LandingRoot class="hub">
+    <LandingHero
+      title="Umbraco packages,"
+      accent="built to stay out of the way"
+      description={tagline}
+      logo="/mark.svg"
+    >
+      <Fragment slot="actions">
+        <a class="hub-button hub-button--secondary" href={profileUrl} rel="noopener">
+          <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor">
+            <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38v-1.34c-2.23.49-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.87.87 2.33.67.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.83-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.52.56.83 1.28.83 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"></path>
+          </svg>
+          TheBuilder on GitHub
+        </a>
+      </Fragment>
+    </LandingHero>
+
+    <section id="packages" class="udocs-shell hub-packages" aria-labelledby="packages-title">
+      <SectionHeading id="packages-title" title="Packages" description={`${packages.length} packages, from stable releases to early previews.`} />
+      <ul class="hub-packages__list" role="list">
+        {packages.map((item) => (
+          <li data-udocs-reveal>
+            <article class="hub-package">
+              <div class="hub-package__header">
+                <img src={item.logo} width="48" height="48" alt="" loading="lazy" />
+                <div>
+                  <h3><a class="hub-package__link" href={item.links.docs}>{item.name}</a></h3>
+                  <p class="hub-package__meta">
+                    <span class:list={["hub-status", `hub-status--${item.status}`]}>{statusLabels[item.status]}</span>
+                    <span>{formatUmbraco(item.compatibility.umbraco)}</span>
+                  </p>
+                </div>
+              </div>
+              <p class="hub-package__summary">{item.summary}</p>
+              <ul class="hub-package__links" role="list" aria-label={`${item.name} links`}>
+                <li><a href={item.links.docs}>{docsLabel(item)}</a></li>
+                {item.links.nuget && <li><a href={item.links.nuget} rel="noopener">NuGet</a></li>}
+                {item.links.marketplace && <li><a href={item.links.marketplace} rel="noopener">Marketplace</a></li>}
+                {item.links.npm && <li><a href={item.links.npm} rel="noopener">npm</a></li>}
+                <li><a href={item.links.github} rel="noopener">GitHub</a></li>
+              </ul>
+            </article>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </LandingRoot>
+</Layout>

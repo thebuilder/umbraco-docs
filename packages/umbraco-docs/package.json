@@ -1,0 +1,70 @@
+{
+  "name": "@thebuilder/umbraco-docs",
+  "version": "1.1.0",
+  "description": "Composable Blume presentation and metadata contracts for TheBuilder Umbraco package documentation.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thebuilder/umbraco-docs.git",
+    "directory": "packages/umbraco-docs"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "files": [
+    "dist",
+    "components",
+    "styles",
+    "public/logo.png",
+    "favicon.png",
+    "icon.png"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./astro": "./components/index.ts",
+    "./components/*": "./components/*.astro",
+    "./styles/landing.css": "./styles/landing.css",
+    "./behaviors": "./dist/behaviors.js",
+    "./og": {
+      "types": "./dist/og/index.d.ts",
+      "import": "./dist/og/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "umbraco-docs-og": "./dist/og/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "generate:brand": "node scripts/generate-brand.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:fixtures": "node scripts/test-fixtures.mjs",
+    "verify": "pnpm run check && pnpm run build && pnpm run test && pnpm run test:fixtures",
+    "prepack": "pnpm run build"
+  },
+  "dependencies": {
+    "gray-matter": "4.0.3",
+    "sharp": "0.35.3"
+  },
+  "peerDependencies": {
+    "blume": ">=1.4.3 <3"
+  },
+  "peerDependenciesMeta": {
+    "blume": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "blume": "2.2.3",
+    "typescript": "^5.9.2"
+  }
+}

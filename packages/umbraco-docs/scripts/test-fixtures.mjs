@@ -10,7 +10,7 @@ function run(args) {
   });
 }
 
-const directories = ["fixtures/blume-1.4.3", "fixtures/blume-1.6.4"];
+const directories = ["fixtures/blume-1.4.3", "fixtures/blume-1.6.4", "fixtures/blume-2.2.3"];
 
 for (const directory of directories) {
   await run(["--dir", directory, "install", "--ignore-workspace", "--frozen-lockfile"]);

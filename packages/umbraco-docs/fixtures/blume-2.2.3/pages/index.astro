@@ -1,0 +1,56 @@
+---
+import { defineUmbracoPackage } from "@thebuilder/umbraco-docs";
+import {
+  EcosystemSection,
+  InstallCommand,
+  LandingHero,
+  LandingRoot,
+  PageShell,
+  ScreenshotFrame,
+  SectionHeading,
+} from "@thebuilder/umbraco-docs/astro";
+
+const packages = [
+  defineUmbracoPackage({
+    id: "thebuilder.fixture",
+    name: "Fixture",
+    summary: "Compatibility fixture for the shared documentation package.",
+    links: {
+      docs: "https://example.com/fixture",
+      nuget: "https://www.nuget.org/packages/TheBuilder.Fixture",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.fixture",
+      github: "https://github.com/thebuilder/fixture",
+    },
+    logo: "/logo.png",
+    compatibility: { umbraco: ">=17 <19" },
+    status: "stable",
+  }),
+  defineUmbracoPackage({
+    id: "thebuilder.related",
+    name: "Related package",
+    summary: "A second package proves explicit ecosystem composition.",
+    links: {
+      docs: "https://example.com/related",
+      nuget: "https://www.nuget.org/packages/TheBuilder.Related",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.related",
+      github: "https://github.com/thebuilder/related",
+    },
+    logo: "/related-logo.png",
+    compatibility: { umbraco: ">=17 <19" },
+    status: "preview",
+  }),
+];
+---
+
+<PageShell title="Fixture" description="Compatibility fixture." ogImage="/og/index.png">
+  <LandingRoot>
+    <LandingHero title="Composable package docs" description="Compatibility fixture." logo="/logo.png">
+      <InstallCommand slot="install" command="dotnet add package TheBuilder.Fixture" />
+      <ScreenshotFrame src="/screenshot.png" alt="Fixture screenshot" width={1200} height={630} />
+    </LandingHero>
+    <section class="udocs-shell" aria-labelledby="fixture-section">
+      <SectionHeading id="fixture-section" title="Shared presentation" description="Rendered from the packed public API." />
+    </section>
+    <EcosystemSection packages={packages} currentPackageId="thebuilder.fixture" />
+  </LandingRoot>
+</PageShell>

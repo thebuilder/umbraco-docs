@@ -1,6 +1,6 @@
 node_modules/
 dist/
 .astro/
-fixtures/*/dist/
-fixtures/*/.blume/
-fixtures/*/.blume-verify/
+packages/*/fixtures/*/dist/
+packages/*/fixtures/*/.blume/
+packages/*/fixtures/*/.blume-verify/

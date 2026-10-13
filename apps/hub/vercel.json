@@ -1,0 +1,8 @@
+{
+  "headers": [
+    {
+      "source": "/packages.json",
+      "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+    }
+  ]
+}
