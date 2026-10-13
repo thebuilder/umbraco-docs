@@ -1,21 +1,19 @@
 // The hero background: the U mark drawn by particles that swirl in from the sky, flow along the
-// stroke, and scatter from the pointer. Each frame runs simulate (compute) → particles (additive
-// points into an HDR target) → bloom (half and quarter resolution) → composite into the canvas.
+// stroke, and scatter from the pointer. This file owns the page side (pointer, theme, visibility,
+// the frame loop); scene.ts owns the GPU work.
 
-import { clock, compute, draw, effect, frame, frameLoop, init, sampler, storage, surface, target } from "vgpu";
+import { clock, frame, frameLoop, init, surface } from "vgpu";
 import type { Frame, FrameLoopHandle } from "vgpu";
 
-import { generateField, MARK_HEIGHT, SPRITE_FLOATS } from "./field.ts";
-import blurShader from "./blur.wgsl";
-import brightShader from "./bright.wgsl";
-import compositeShader from "./composite.wgsl";
-import particlesShader from "./particles.wgsl";
-import simulateShader from "./simulate.wgsl";
+import { createHeroScene } from "./scene.ts";
+import blur from "./blur.wgsl";
+import bright from "./bright.wgsl";
+import composite from "./composite.wgsl";
+import particles from "./particles.wgsl";
+import simulate from "./simulate.wgsl";
 
 const INTRO_SECONDS = 3.4;
-const HDR = "rgba16float" as const;
 const CLEAR = [0, 0, 0, 0] as const;
-const WORKGROUP = 64;
 
 /**
  * Starts the hero background on `canvas`, dimming it behind `text`, and returns a teardown
@@ -52,84 +50,11 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
     });
 
     const output = surface(gpu, canvas, { dpr: [1, 1.5], clearColor: CLEAR });
-    const field = generateField();
-    const particles = storage(gpu, field.particles.byteLength, "read");
-    particles.write(field.particles);
-    const motion = storage(gpu, field.count * 16, "read-write");
-    motion.write(new Float32Array(field.count * 4));
-    const sprites = storage(gpu, field.count * SPRITE_FLOATS * 4, "read-write");
-
-    const scaled = (divisor: number): [number, number] => [
-      Math.max(1, Math.round(output.size[0] / divisor)),
-      Math.max(1, Math.round(output.size[1] / divisor)),
-    ];
-    const scene = target(gpu, { size: output.size, format: HDR, label: "hero-scene" });
-    const near = [target(gpu, { size: scaled(2), format: HDR }), target(gpu, { size: scaled(2), format: HDR })] as const;
-    const far = [target(gpu, { size: scaled(4), format: HDR }), target(gpu, { size: scaled(4), format: HDR })] as const;
-
+    const scene = createHeroScene(gpu, output, { simulate, particles, bright, blur, composite }, { height: 0.84, offset: [0, -0.02] });
     const dark = { value: isDark() ? 1 : 0, target: isDark() ? 1 : 0 };
-    const samp = sampler(gpu, { minFilter: "linear", magFilter: "linear", addressModeU: "clamp-to-edge", addressModeV: "clamp-to-edge" });
-    const simulate = compute(gpu, simulateShader, {
-      label: "hero-simulate",
-      set: {
-        particles,
-        motion,
-        sprites,
-        params: {
-          aspect: 1, markScale: 1, markOffsetY: 0, time: 0, dt: 0, intro: reducedMotion ? 1 : 0, flow: 0.012,
-          dark: dark.value, pointer: [0, 0], pointerActive: 0, pixelRatio: 1, tilt: [0, 0], count: field.count, pad: 0,
-        },
-      },
-    });
-    const points = draw(gpu, {
-      shader: particlesShader,
-      vertices: 6,
-      instances: field.count,
-      blend: { color: { src: "one", dst: "one" }, alpha: { src: "one", dst: "one" } },
-      label: "hero-particles",
-      set: { sprites, view: { resolution: [1, 1] } },
-    });
-    const bright = effect(gpu, brightShader, { label: "hero-bright", set: { samp, bright: { threshold: 0.06, knee: 0.4 } } });
-    const blurs = [
-      { src: near[0], dst: near[1], direction: [1, 0], spread: 1.3 },
-      { src: near[1], dst: near[0], direction: [0, 1], spread: 1.3 },
-      { src: near[0], dst: far[0], direction: [1, 0], spread: 2.2 },
-      { src: far[0], dst: far[1], direction: [0, 1], spread: 2.2 },
-    ].map((pass, i) => ({
-      ...pass,
-      effect: effect(gpu, blurShader, {
-        label: `hero-blur-${i}`,
-        set: { samp, blur: { texel: [1, 1], direction: pass.direction, spread: pass.spread } },
-      }),
-    }));
-    const composite = effect(gpu, compositeShader, {
-      label: "hero-composite",
-      set: {
-        samp,
-        params: { textMin: [0, 0], textMax: [0, 0], dark: dark.value, exposure: 2.4, bloom: 1.6, textDim: 0.45 },
-      },
-    });
-
-    let aspect = 1;
-    const bind = () => {
-      const [width, height] = output.size;
-      aspect = width / Math.max(height, 1);
-      // The mark fills most of the hero's height, narrowed on portrait screens so it still fits.
-      const markScale = Math.min(1.68 / MARK_HEIGHT, (aspect * 1.75) / 172);
-      simulate.set({ params: { aspect, markScale, markOffsetY: -0.02, pixelRatio: output.dpr } });
-      points.set({ view: { resolution: [width, height] } });
-      bright.set({ src: scene });
-      for (const pass of blurs) pass.effect.set({ src: pass.src, blur: { texel: pass.src.texelSize } });
-      composite.set({ scene, bloomNear: near[0], bloomFar: far[1] });
-    };
-    const resizeTargets = ([width, height]: readonly [number, number]) => {
-      scene.resize([width, height]);
-      for (const half of near) half.resize(scaled(2));
-      for (const quarter of far) quarter.resize(scaled(4));
-      bind();
-    };
-    bind();
-    onCleanup(output.onResize(({ width, height }) => resizeTargets([width, height])));
+    scene.look({ dark: dark.value });
+    scene.move({ intro: reducedMotion ? 1 : 0 });
+    onCleanup(output.onResize(() => scene.resize(output.dpr)));
 
     // Measure where the text sits, so the composite can step back behind it.
     const measureText = () => {
@@ -137,10 +62,10 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
       const box = canvas.getBoundingClientRect();
       const rect = text.getBoundingClientRect();
       if (box.width === 0 || box.height === 0) return;
-      composite.set({
-        params: {
-          textMin: [(rect.left - box.left) / box.width, (rect.top - box.top) / box.height],
-          textMax: [(rect.right - box.left) / box.width, (rect.bottom - box.top) / box.height],
+      scene.look({
+        text: {
+          min: [(rect.left - box.left) / box.width, (rect.top - box.top) / box.height],
+          max: [(rect.right - box.left) / box.width, (rect.bottom - box.top) / box.height],
         },
       });
     };
@@ -150,26 +75,12 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
     onCleanup(() => layout.disconnect());
     measureText();
 
-    const compiled = await Promise.all([
-      simulate.compile(),
-      points.compile(scene),
-      bright.compile(near[0]),
-      ...blurs.map((pass) => pass.effect.compile(pass.dst)),
-      composite.compile(output),
-    ]).then(() => true, () => false);
+    const compiled = await scene.compile().then(() => true, () => false);
     if (!compiled || disposed) return;
 
     const render = (currentFrame: Frame) => {
-      currentFrame.computePass((pass) => pass.dispatch(simulate, Math.ceil(field.count / WORKGROUP)));
-      currentFrame.pass({ target: scene, clear: CLEAR }, (pass) => pass.draw(points));
-      currentFrame.pass({ target: near[0], clear: CLEAR }, (pass) => pass.draw(bright));
-      for (const blur of blurs) currentFrame.pass({ target: blur.dst, clear: CLEAR }, (pass) => pass.draw(blur.effect));
-      currentFrame.pass({ target: output, clear: CLEAR }, (pass) => pass.draw(composite));
+      scene.render(currentFrame);
       canvas.dataset.ready = "true";
-    };
-    const setDark = (value: number) => {
-      simulate.set({ params: { dark: value } });
-      composite.set({ params: { dark: value } });
     };
 
     if (reducedMotion) {
@@ -179,7 +90,7 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
       resizeObserver.observe(canvas);
       onCleanup(() => resizeObserver.disconnect());
       onCleanup(watchTheme(() => {
-        setDark(isDark() ? 1 : 0);
+        scene.look({ dark: isDark() ? 1 : 0 });
         still();
       }));
       return;
@@ -193,7 +104,7 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
       // A finger has no hover, and a touch that scrolls the page should not leave a hole behind.
       if (event.pointerType === "touch") return;
       const rect = canvas.getBoundingClientRect();
-      pointer.targetX = (((event.clientX - rect.left) / rect.width) * 2 - 1) * aspect;
+      pointer.targetX = (((event.clientX - rect.left) / rect.width) * 2 - 1) * scene.aspect;
       pointer.targetY = 1 - ((event.clientY - rect.top) / rect.height) * 2;
       pointer.targetActive = 1;
     };
@@ -224,17 +135,14 @@ export function startHeroShader(canvas: HTMLCanvasElement, text?: HTMLElement): 
       tilt.x += (tiltX - tilt.x) * follow(2);
       tilt.y += (tiltY - tilt.y) * follow(2);
       dark.value += (dark.target - dark.value) * follow(6);
-      setDark(dark.value);
-
-      simulate.set({
-        params: {
-          time: elapsed,
-          dt,
-          intro: Math.min(elapsed / INTRO_SECONDS, 1),
-          pointer: [pointer.x, pointer.y],
-          pointerActive: pointer.active,
-          tilt: [tilt.x, tilt.y],
-        },
+      scene.look({ dark: dark.value });
+      scene.move({
+        time: elapsed,
+        dt,
+        intro: Math.min(elapsed / INTRO_SECONDS, 1),
+        pointer: [pointer.x, pointer.y],
+        pointerActive: pointer.active,
+        tilt: [tilt.x, tilt.y],
       });
       render(currentFrame);
     });

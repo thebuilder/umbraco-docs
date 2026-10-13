@@ -12,6 +12,8 @@ struct Params {
   exposure: f32,
   bloom: f32,
   textDim: f32,
+  // 1 fades out toward the bottom edge, into the page below; 0 keeps the full frame.
+  fade: f32,
 }
 
 @group(0) @binding(0) var scene: texture_2d<f32>;
@@ -34,7 +36,7 @@ fn boxMask(uv: vec2f, lo: vec2f, hi: vec2f, feather: f32) -> f32 {
   light = max(mix(vec3f(grey), light, 1.35), vec3f(0.0));
 
   let mask = (1.0 - params.textDim * boxMask(uv, params.textMin, params.textMax, 0.06))
-    * (1.0 - smoothstep(0.72, 1.0, uv.y));
+    * (1.0 - params.fade * smoothstep(0.72, 1.0, uv.y));
 
   // Dark: light over the page. A per-channel exponential keeps the brand hues saturated where a
   // filmic curve would wash them toward white.
