@@ -15,7 +15,8 @@
 .udocs-shell { width: 100%; max-width: 72rem; margin-inline: auto; padding-inline: 1.5rem; }
   .udocs-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .udocs-hero { position: relative; overflow: clip; padding-block: clamp(3rem, 8vw, 6rem); }
-  .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: 40rem; background: radial-gradient(circle at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
+  /* An ellipse sized to its box is transparent before the box's bottom edge, and the box never outgrows the hero, so short heroes fade out instead of cutting off. */
+  .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: min(40rem, 130%); background: radial-gradient(ellipse at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
   .udocs-hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
   .udocs-hero__logo { width: 4.5rem; height: 4.5rem; object-fit: contain; }
   .udocs-hero__title { max-width: 20ch; margin: 0; font-family: var(--blume-font-display, system-ui); font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
