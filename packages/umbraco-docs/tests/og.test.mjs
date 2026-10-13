@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import sharp from "sharp";
 import { collectOgCards, generateOgImages, resolvePublicImagePath } from "../dist/og/index.js";
 
 async function fixture() {
@@ -44,6 +45,24 @@ test("OG generation composes the configured product logo", async () => {
   assert.notDeepEqual(withLogo, withoutLogo);
 });
 
+test("OG generation lays the text over a configured background", async () => {
+  const config = await fixture();
+  await mkdir(config.publicDir, { recursive: true });
+  await writeFile(path.join(config.publicDir, "backdrop.svg"), `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="315"><rect width="600" height="315" fill="#f472b6"/></svg>`);
+
+  await generateOgImages({ ...config, background: "/backdrop.svg" });
+  const withBackground = await readFile(path.join(config.publicDir, "og", "index.png"));
+  await generateOgImages(config);
+  const withoutBackground = await readFile(path.join(config.publicDir, "og", "index.png"));
+
+  assert.notDeepEqual(withBackground, withoutBackground);
+  // The background is scaled to cover the whole card, and its color shows where there is no text.
+  const { data, info } = await sharp(withBackground).raw().toBuffer({ resolveWithObject: true });
+  assert.deepEqual([info.width, info.height], [1200, 630]);
+  const corner = (info.width * (info.height - 1) + info.width - 1) * info.channels;
+  assert.deepEqual([...data.subarray(corner, corner + 3)], [0xf4, 0x72, 0xb6]);
+});
+
 test("public output paths cannot escape the configured prefix", () => {
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/other/card.png", "/og"), /Unsafe/);
   assert.throws(() => resolvePublicImagePath("/tmp/public", "/og/../card.png", "/og"), /Unsafe/);
@@ -65,4 +84,5 @@ test("OG config validation rejects unsafe prefixes", async () => {
   const config = await fixture();
   await assert.rejects(collectOgCards({ ...config, prefix: "/og/../outside" }), /prefix must be a safe absolute public path/);
   await assert.rejects(collectOgCards({ ...config, logo: "/../logo.svg" }), /logo must be a safe absolute public path/);
+  await assert.rejects(collectOgCards({ ...config, background: "/../backdrop.png" }), /background must be a safe absolute public path/);
 });

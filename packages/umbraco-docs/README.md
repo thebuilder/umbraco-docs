@@ -91,3 +91,5 @@ pnpm exec umbraco-docs-og --check
 ```
 
 Generation is deterministic. Check mode fails when an expected image is missing or stale.
+
+To replace the default gradient, set `background` to a public image, such as `background: "/og/backdrop.png"`. It is scaled to cover the 1200×630 card and the text goes on top, so keep its left side calm. The hub renders its backdrop from its hero shaders with `apps/hub/scripts/render-og-backdrop.ts`.

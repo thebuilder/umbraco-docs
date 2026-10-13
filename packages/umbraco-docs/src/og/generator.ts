@@ -93,13 +93,18 @@ async function renderCard(card: OgCardInput, config: UmbracoDocsOgConfig): Promi
   const descriptionY = titleY + (titleLines.length - 1) * 78 + 80;
   const description = descriptionLines.map((line, index) => `<text x="82" y="${descriptionY + index * 46}" class="description">${escapeXml(line)}</text>`).join("");
   const accent = escapeXml(config.accent ?? "#60a5fa");
-  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35"/><stop offset="0.56" stop-color="#090e1d"/><stop offset="1" stop-color="#05060c"/></linearGradient><radialGradient id="glow" cx="0.2" cy="-0.08" r="0.9"><stop offset="0" stop-color="${accent}" stop-opacity="0.45"/><stop offset="0.46" stop-color="#6366f1" stop-opacity="0.12"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="0.5" stop-color="#9b83ec"/><stop offset="1" stop-color="#ed63ad"/></linearGradient></defs><style>.brand{font:600 26px system-ui,sans-serif;fill:#aab2c5}.title{font:800 ${titleSize}px system-ui,sans-serif;letter-spacing:-2px;fill:#f8fafc}.description{font:400 38px system-ui,sans-serif;fill:#aab2c5}</style><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#background)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/><rect width="${WIDTH}" height="6" fill="url(#accent)"/>${config.logo ? "" : `<text x="82" y="112" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>`}${title}${description}</svg>`;
+  const svg = `<svg width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#111a35"/><stop offset="0.56" stop-color="#090e1d"/><stop offset="1" stop-color="#05060c"/></linearGradient><radialGradient id="glow" cx="0.2" cy="-0.08" r="0.9"><stop offset="0" stop-color="${accent}" stop-opacity="0.45"/><stop offset="0.46" stop-color="#6366f1" stop-opacity="0.12"/><stop offset="1" stop-color="#6366f1" stop-opacity="0"/></radialGradient><linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#60a5fa"/><stop offset="0.5" stop-color="#9b83ec"/><stop offset="1" stop-color="#ed63ad"/></linearGradient></defs><style>.brand{font:600 26px system-ui,sans-serif;fill:#aab2c5}.title{font:800 ${titleSize}px system-ui,sans-serif;letter-spacing:-2px;fill:#f8fafc}.description{font:400 38px system-ui,sans-serif;fill:#aab2c5}</style>${config.background ? "" : `<rect width="${WIDTH}" height="${HEIGHT}" fill="url(#background)"/><rect width="${WIDTH}" height="${HEIGHT}" fill="url(#glow)"/><rect width="${WIDTH}" height="6" fill="url(#accent)"/>`}${config.logo ? "" : `<text x="82" y="112" class="brand">${escapeXml(config.brand ?? "TheBuilder · Umbraco")}</text>`}${title}${description}</svg>`;
   const composites = config.logo ? [{
     input: await sharp(await readFile(resolvePublicAssetPath(config.publicDir, config.logo))).resize(168, 168, { fit: "contain" }).png().toBuffer(),
     left: 72,
     top: 68,
   }] : [];
-  return sharp(Buffer.from(svg)).composite(composites).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
+  // With a background, the text layer is transparent and goes on top of the scaled image.
+  const base = config.background
+    ? sharp(await readFile(resolvePublicAssetPath(config.publicDir, config.background))).resize(WIDTH, HEIGHT, { fit: "cover" })
+    : sharp(Buffer.from(svg));
+  const layers = config.background ? [{ input: Buffer.from(svg), left: 0, top: 0 }, ...composites] : composites;
+  return base.composite(layers).png({ compressionLevel: 9, adaptiveFiltering: false, palette: false }).toBuffer();
 }
 
 export async function generateOgImages(config: UmbracoDocsOgConfig, options: { check?: boolean } = {}): Promise<OgCardInput[]> {
