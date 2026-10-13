@@ -60,7 +60,9 @@ export function validateUmbracoPackage(value: unknown): UmbracoPackage {
   const id = requireString(input.id, "id");
   if (!stableId.test(id)) throw new TypeError("id must be a stable lowercase dotted or dashed identifier");
   const logo = requireString(input.logo, "logo");
-  if (!publicRootPath.test(logo)) throw new TypeError("logo must be a safe public-root path beginning with one /");
+  if (!publicRootPath.test(logo) && !isHttpsUrl(logo)) {
+    throw new TypeError("logo must be a safe public-root path beginning with one /, or an absolute https URL");
+  }
 
   const rawLinks = requireRecord(input.links, "links");
   const nuget = rawLinks.nuget === undefined ? undefined : requireHttpsUrl(rawLinks.nuget, "links.nuget");
