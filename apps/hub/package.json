@@ -1,0 +1,20 @@
+{
+  "name": "@thebuilder/umbraco-hub",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @thebuilder/umbraco-docs build && node node_modules/@thebuilder/umbraco-docs/dist/og/cli.js && astro dev",
+    "build": "pnpm --filter @thebuilder/umbraco-docs build && pnpm run build:site",
+    "build:site": "node node_modules/@thebuilder/umbraco-docs/dist/og/cli.js && astro check && astro build",
+    "check:og": "node node_modules/@thebuilder/umbraco-docs/dist/og/cli.js --check"
+  },
+  "dependencies": {
+    "@thebuilder/umbraco-docs": "workspace:*",
+    "@vercel/analytics": "2.0.1",
+    "astro": "7.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,81 @@
+---
+import Analytics from "@vercel/analytics/astro";
+
+import "../styles/hub.css";
+
+interface Props {
+  title: string;
+  description: string;
+  ogImage: `/${string}`;
+}
+
+const { title, description, ogImage } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(ogImage, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/mark.svg" />
+    <link rel="alternate" type="application/json" href="/packages.json" title="Package registry" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TheBuilder Umbraco" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <script is:inline>
+      // Apply a saved theme before first paint; without one the page follows the system.
+      try {
+        const theme = localStorage.getItem("hub-theme");
+        if (theme === "light" || theme === "dark") document.documentElement.dataset.theme = theme;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <button class="hub-theme-toggle" type="button" aria-label="Dark theme" aria-pressed="false">
+      <svg data-icon="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+      </svg>
+      <svg data-icon="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+      </svg>
+    </button>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const button = document.querySelector(".hub-theme-toggle");
+        const systemDark = matchMedia("(prefers-color-scheme: dark)");
+        const isDark = () => root.dataset.theme ? root.dataset.theme === "dark" : systemDark.matches;
+        const sync = () => button.setAttribute("aria-pressed", String(isDark()));
+        sync();
+        systemDark.addEventListener("change", sync);
+        button.addEventListener("click", () => {
+          const theme = isDark() ? "light" : "dark";
+          root.dataset.theme = theme;
+          try { localStorage.setItem("hub-theme", theme); } catch {}
+          sync();
+        });
+      })();
+    </script>
+    <main>
+      <slot />
+    </main>
+    <Analytics />
+    <footer class="hub-footer">
+      <p class="udocs-shell">Curated by <a href="https://github.com/thebuilder" rel="noopener">TheBuilder</a>. Each package links to its own source and license.</p>
+    </footer>
+  </body>
+</html>

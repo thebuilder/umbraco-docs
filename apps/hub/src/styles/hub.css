@@ -1,0 +1,143 @@
+:root {
+  color-scheme: light;
+  --hub-background: #ffffff;
+  --hub-foreground: #18181b;
+  --hub-muted: #f4f4f5;
+  --hub-muted-foreground: #52525b;
+  --hub-border: #e4e4e7;
+  --hub-accent: #2563eb;
+  --hub-status-stable: #15803d;
+  --hub-status-preview: #7c3aed;
+  --hub-status-maintenance: #b45309;
+  --hub-status-deprecated: #b91c1c;
+}
+
+/* Dark follows the system unless the theme toggle pinned a choice in data-theme. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --hub-background: #09090b;
+    --hub-foreground: #fafafa;
+    --hub-muted: #18181b;
+    --hub-muted-foreground: #a1a1aa;
+    --hub-border: #27272a;
+    --hub-accent: #60a5fa;
+    --hub-status-stable: #4ade80;
+    --hub-status-preview: #c4b5fd;
+    --hub-status-maintenance: #fbbf24;
+    --hub-status-deprecated: #f87171;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --hub-background: #09090b;
+  --hub-foreground: #fafafa;
+  --hub-muted: #18181b;
+  --hub-muted-foreground: #a1a1aa;
+  --hub-border: #27272a;
+  --hub-accent: #60a5fa;
+  --hub-status-stable: #4ade80;
+  --hub-status-preview: #c4b5fd;
+  --hub-status-maintenance: #fbbf24;
+  --hub-status-deprecated: #f87171;
+}
+
+/* The shared landing styles read their tokens from the root they render in. */
+[data-udocs-root] {
+  --udocs-accent: var(--hub-accent);
+  --udocs-border: var(--hub-border);
+  --udocs-muted: var(--hub-muted);
+  --udocs-muted-foreground: var(--hub-muted-foreground);
+  --udocs-foreground: var(--hub-foreground);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; background: var(--hub-background); color: var(--hub-foreground); font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; }
+
+.hub-button {
+  gap: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-inline: 1.15rem;
+  border: 1px solid var(--udocs-border);
+  border-radius: var(--udocs-radius);
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+.hub-button--secondary { color: var(--udocs-foreground); }
+.hub-button--secondary:hover { border-color: color-mix(in oklab, var(--udocs-accent) 45%, var(--udocs-border)); }
+.hub-button:focus-visible { outline: 2px solid var(--udocs-accent); outline-offset: 3px; }
+
+.hub-packages { margin-block: clamp(3rem, 7vw, 5rem) clamp(4rem, 9vw, 7rem); }
+.hub-packages__list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin: 0; padding: 0; list-style: none; }
+.hub-packages__list > li { min-width: 0; }
+
+.hub-package {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  height: 100%;
+  padding: 1.4rem;
+  border: 1px solid var(--udocs-border);
+  border-radius: calc(var(--udocs-radius) * 1.4);
+  background: color-mix(in oklab, var(--udocs-muted) 38%, transparent);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.hub-package:hover { border-color: color-mix(in oklab, var(--udocs-accent) 45%, var(--udocs-border)); box-shadow: 0 16px 32px -22px color-mix(in oklab, var(--udocs-accent) 55%, transparent); }
+.hub-package:focus-within { border-color: var(--udocs-accent); }
+.hub-package__header { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1rem; }
+.hub-package__header img { width: 3rem; height: 3rem; object-fit: contain; }
+.hub-package h3 { margin: 0; font-size: 1.125rem; font-weight: 750; line-height: 1.25; }
+.hub-package__link { color: var(--udocs-foreground); text-decoration: none; }
+/* The title link covers the card, so the card shows its focus ring. */
+.hub-package__link:focus-visible { outline: none; }
+.hub-package:has(.hub-package__link:focus-visible) { outline: 2px solid var(--udocs-accent); outline-offset: 3px; }
+/* Stretch the title link over the card; the footer links sit above it. */
+.hub-package__link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.hub-package__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.35rem 0 0; color: var(--udocs-muted-foreground); font-size: 0.85rem; }
+.hub-package__summary { flex: 1; margin: 0; color: var(--udocs-muted-foreground); line-height: 1.55; }
+.hub-package__links { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 0; padding: 0.9rem 0 0; border-top: 1px solid var(--udocs-border); list-style: none; font-size: 0.875rem; }
+.hub-package__links a { color: var(--udocs-accent); font-weight: 600; text-decoration: none; }
+.hub-package__links a:hover { text-decoration: underline; }
+
+.hub-status { padding: 0.1rem 0.5rem; border: 1px solid currentColor; border-radius: 999px; font-size: 0.75rem; font-weight: 650; line-height: 1.4; }
+.hub-status--stable { color: var(--hub-status-stable); }
+.hub-status--preview { color: var(--hub-status-preview); }
+.hub-status--maintenance { color: var(--hub-status-maintenance); }
+.hub-status--deprecated { color: var(--hub-status-deprecated); }
+
+.hub-footer { border-top: 1px solid var(--hub-border); color: var(--hub-muted-foreground); font-size: 0.875rem; }
+.hub-footer p { margin: 0; padding-block: 2rem; }
+.hub-footer a { color: inherit; }
+.hub-footer a:hover { color: var(--hub-foreground); }
+
+.hub-theme-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid var(--hub-border);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--hub-background) 80%, transparent);
+  color: var(--hub-muted-foreground);
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+.hub-theme-toggle:hover { color: var(--hub-foreground); border-color: color-mix(in oklab, var(--hub-accent) 45%, var(--hub-border)); }
+.hub-theme-toggle:focus-visible, .hub-footer a:focus-visible { outline: 2px solid var(--hub-accent); outline-offset: 3px; }
+/* Show the icon for the theme a click switches to. */
+.hub-theme-toggle [data-icon="sun"], .hub-theme-toggle[aria-pressed="true"] [data-icon="moon"] { display: none; }
+.hub-theme-toggle[aria-pressed="true"] [data-icon="sun"] { display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-button, .hub-package, .hub-theme-toggle { transition: none; }
+}

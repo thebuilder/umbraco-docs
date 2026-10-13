@@ -6,8 +6,12 @@ export type UmbracoPackageStatus = (typeof UMBRACO_PACKAGE_STATUSES)[number];
 
 export interface UmbracoPackageLinks {
   docs: string;
-  nuget: string;
-  marketplace: string;
+  /** Omit until the package is published to NuGet. */
+  nuget?: string;
+  /** Omit until the package is listed on the Umbraco Marketplace. */
+  marketplace?: string;
+  /** For frontend packages published to npm. */
+  npm?: string;
   github: string;
 }
 
@@ -59,10 +63,14 @@ export function validateUmbracoPackage(value: unknown): UmbracoPackage {
   if (!publicRootPath.test(logo)) throw new TypeError("logo must be a safe public-root path beginning with one /");
 
   const rawLinks = requireRecord(input.links, "links");
+  const nuget = rawLinks.nuget === undefined ? undefined : requireHttpsUrl(rawLinks.nuget, "links.nuget");
+  const marketplace = rawLinks.marketplace === undefined ? undefined : requireHttpsUrl(rawLinks.marketplace, "links.marketplace");
+  const npm = rawLinks.npm === undefined ? undefined : requireHttpsUrl(rawLinks.npm, "links.npm");
   const links = Object.freeze({
     docs: requireHttpsUrl(rawLinks.docs, "links.docs"),
-    nuget: requireHttpsUrl(rawLinks.nuget, "links.nuget"),
-    marketplace: requireHttpsUrl(rawLinks.marketplace, "links.marketplace"),
+    ...(nuget === undefined ? {} : { nuget }),
+    ...(marketplace === undefined ? {} : { marketplace }),
+    ...(npm === undefined ? {} : { npm }),
     github: requireHttpsUrl(rawLinks.github, "links.github"),
   });
 

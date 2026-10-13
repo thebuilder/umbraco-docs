@@ -1,0 +1,10 @@
+{
+  "name": "@thebuilder/umbraco-docs-fixture-blume-2-2-3",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "blume check --isolated && blume build --isolated" },
+  "dependencies": {
+    "@thebuilder/umbraco-docs": "file:../..",
+    "blume": "2.2.3"
+  }
+}
