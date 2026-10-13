@@ -11,10 +11,12 @@
   "dependencies": {
     "@thebuilder/umbraco-docs": "workspace:*",
     "@vercel/analytics": "2.0.1",
-    "astro": "7.3.2"
+    "astro": "7.3.2",
+    "vgpu": "0.6.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@vgpu/wgsl": "0.6.0",
     "typescript": "^5.9.2"
   }
 }

@@ -4,6 +4,7 @@ import LandingHero from "@thebuilder/umbraco-docs/components/LandingHero";
 import LandingRoot from "@thebuilder/umbraco-docs/components/LandingRoot";
 import SectionHeading from "@thebuilder/umbraco-docs/components/SectionHeading";
 
+import HeroShader from "../components/HeroShader.astro";
 import Layout from "../layouts/Layout.astro";
 import { docsLabel, formatUmbraco, statusLabels } from "../format.ts";
 import { packages } from "../packages.ts";
@@ -22,8 +23,8 @@ const profileUrl = "https://github.com/thebuilder";
       title="Umbraco packages,"
       accent="built to stay out of the way"
       description={tagline}
-      logo="/mark.svg"
     >
+      <HeroShader slot="background" />
       <Fragment slot="actions">
         <a class="hub-button hub-button--secondary" href={profileUrl} rel="noopener">
           <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" fill="currentColor">

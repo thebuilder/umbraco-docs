@@ -61,7 +61,8 @@
 @media (max-width: 40rem) { .udocs-ecosystem__list { grid-template-columns: 1fr; } }
 
 @layer udocs.motion {
-  [data-udocs-motion="true"] [data-udocs-reveal] { opacity: 0; transform: translateY(0.75rem); transition: opacity 0.45s ease, transform 0.45s ease; }
+  /* The stagger comes from the reveal behavior; a host can add an offset, for example to wait for its own intro. */
+  [data-udocs-motion="true"] [data-udocs-reveal] { opacity: 0; transform: translateY(0.75rem); transition: opacity 0.45s ease, transform 0.45s ease; transition-delay: calc(var(--udocs-reveal-offset, 0ms) + var(--udocs-reveal-stagger, 0ms)); }
   [data-udocs-motion="true"] [data-udocs-visible="true"] { opacity: 1; transform: none; }
   @media (prefers-reduced-motion: reduce) {
     [data-udocs-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
