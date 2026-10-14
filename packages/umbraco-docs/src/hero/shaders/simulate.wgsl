@@ -126,7 +126,8 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
     let depth = particle.a.z;
     let rise = fract((particle.d.y + 1.0) * 0.5 + t * (0.004 + depth * 0.01)) * 2.0 - 1.0;
     let sway = sin(t * 0.21 + phase) * 0.025;
-    position = vec3f((particle.d.x * 1.06 + sway) * params.aspect, rise * 1.06, (depth - 0.5) * 1.3);
+    // The field reaches past the sides, so the tilt never brings its edge into view.
+    position = vec3f((particle.d.x * 1.2 + sway) * params.aspect, rise * 1.06, (depth - 0.5) * 1.3);
     alpha = smoothstep(1.06, 0.9, abs(rise)) * smoothstep(0.0, 0.6, params.intro);
   } else {
     var home = particle.a.xy;

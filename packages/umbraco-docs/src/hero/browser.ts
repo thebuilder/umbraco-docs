@@ -8,6 +8,8 @@ import { createParticleField, type FlowStroke, type LogoPixels } from "./field.j
 import { CENTERED, createHeroScene } from "./scene.js";
 
 const INTRO_SECONDS = 3.4;
+// How far the logo turns toward the pointer at most, in radians: sideways, then up and down.
+const MAX_TILT = [0.12, 0.07] as const;
 const CLEAR = [0, 0, 0, 0] as const;
 // The logo is drawn into a square this many pixels wide before particles are placed on it.
 const RASTER = 256;
@@ -175,9 +177,13 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
       pointer.x += (pointer.targetX - pointer.x) * follow(10);
       pointer.y += (pointer.targetY - pointer.y) * follow(10);
       pointer.active += (pointer.targetActive - pointer.active) * follow(4);
-      // The logo turns gently toward the pointer, and sways on its own when left alone.
-      const tiltX = pointer.x * 0.16 * pointer.active + Math.sin(elapsed * 0.23) * 0.1 * (1 - pointer.active);
-      const tiltY = -pointer.y * 0.12 * pointer.active + Math.sin(elapsed * 0.17) * 0.05 * (1 - pointer.active);
+      // The logo turns gently toward the pointer, and sways on its own when left alone. The turn
+      // follows the pointer's share of the hero's width, not its distance, so a wide hero turns no
+      // further than a narrow one, and it stays small: tilted further, the logo skews and the dust
+      // field shows its edge.
+      const across = Math.max(-1, Math.min(1, pointer.x / scene.aspect));
+      const tiltX = across * MAX_TILT[0] * pointer.active + Math.sin(elapsed * 0.23) * MAX_TILT[0] * 0.5 * (1 - pointer.active);
+      const tiltY = -pointer.y * MAX_TILT[1] * pointer.active + Math.sin(elapsed * 0.17) * MAX_TILT[1] * 0.5 * (1 - pointer.active);
       tilt.x += (tiltX - tilt.x) * follow(2);
       tilt.y += (tiltY - tilt.y) * follow(2);
       dark.value += (dark.target - dark.value) * follow(6);
