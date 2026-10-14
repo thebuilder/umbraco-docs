@@ -37,7 +37,7 @@ struct Params {
   pixelRatio: f32,
   tilt: vec2f,
   count: u32,
-  pad: f32,
+  markOffsetX: f32,
 }
 
 @group(0) @binding(0) var<uniform> params: Params;
@@ -57,10 +57,21 @@ const RADIUS = 68.0;
 const BAR = 92.0;
 const ARC = 213.62830;
 const STROKE = 397.62830;
+// The flow runs past both ends into the round caps, which have the stroke's half width as radius.
+const CAP = 18.0;
+const FLOW = 433.62830;
 const CAMERA = 2.6;
 
-fn strokePoint(progress: f32, across: f32) -> vec2f {
-  let d = progress * STROKE;
+// How much of the stroke's width is left at distance `d` along it: all of it, except inside the
+// round caps past either end, where the width closes to a point.
+fn capWidth(d: f32) -> f32 {
+  let beyond = max(-d, d - STROKE) / CAP;
+  return sqrt(max(1.0 - max(beyond, 0.0) * max(beyond, 0.0), 0.0));
+}
+
+fn strokePoint(progress: f32, offset: f32) -> vec2f {
+  let d = progress * FLOW - CAP;
+  let across = offset * capWidth(d);
   if (d < BAR) {
     return vec2f(LEFT - across, TOP + d);
   }
@@ -72,7 +83,16 @@ fn strokePoint(progress: f32, across: f32) -> vec2f {
 }
 
 fn markToView(point: vec2f) -> vec2f {
-  return (point - CENTER) * vec2f(1.0, -1.0) * params.markScale + vec2f(0.0, params.markOffsetY);
+  return (point - CENTER) * vec2f(1.0, -1.0) * params.markScale + vec2f(params.markOffsetX, params.markOffsetY);
+}
+
+// The diagonal gradient of mark.svg across the mark's bounds (x 42 to 214, y 26 to 222), in linear color.
+fn markColor(point: vec2f) -> vec3f {
+  let shade = clamp(((point.x - 42.0) / 172.0 + (point.y - 26.0) / 196.0) * 0.5, 0.0, 1.0);
+  let blue = vec3f(0.1170, 0.3763, 0.9560);
+  let violet = vec3f(0.3278, 0.2270, 0.8388);
+  let pink = vec3f(0.8469, 0.1248, 0.4179);
+  return select(mix(violet, pink, (shade - 0.52) / 0.48), mix(blue, violet, shade / 0.52), shade < 0.52);
 }
 
 fn rotate(v: vec2f, angle: f32) -> vec2f {
@@ -100,6 +120,7 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   let t = params.time;
 
   var position: vec3f;
+  var color = particle.c.rgb;
   var alpha = 1.0;
   var glow = 0.0;
 
@@ -113,15 +134,19 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   } else {
     var home: vec2f;
     if (kind == 0u) {
-      // Stroke particles flow from one end of the U to the other and fade in and out at the caps.
+      // Stroke particles flow from one tip of the U to the other, squeezing into the round caps
+      // and fading out right at the tips. The squeeze would pile them up there, so they dim with it.
       let progress = fract(particle.b.x + t * params.flow);
       home = strokePoint(progress, particle.b.y);
-      alpha = smoothstep(0.0, 0.035, progress) * (1.0 - smoothstep(0.965, 1.0, progress));
+      alpha = smoothstep(0.0, 0.012, progress) * (1.0 - smoothstep(0.988, 1.0, progress))
+        * mix(0.55, 1.0, capWidth(progress * FLOW - CAP));
       // A pulse of light runs along the stroke, twice per loop.
       glow = pow(0.5 + 0.5 * sin((progress - t * 0.06) * TAU * 2.0), 10.0);
     } else {
       home = particle.a.xy;
     }
+    // Color by where the particle is now, so the gradient holds while the stroke flows.
+    color = markColor(home + vec2f(particle.b.z - 0.5) * 18.0);
     // A little life even at rest.
     home += vec2f(sin(t * 0.63 + phase), cos(t * 0.49 + phase * 1.7)) * 0.9;
     var settled = vec3f(markToView(home), particle.a.z * params.markScale);
@@ -136,8 +161,9 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
     glow += (1.0 - pull) * pull * 2.4;
   }
 
-  // Tilt toward the pointer, then project.
-  var p = position;
+  // Tilt around the mark's center, then project.
+  let pivot = vec3f(params.markOffsetX, params.markOffsetY, 0.0);
+  var p = position - pivot;
   let cy = cos(params.tilt.x);
   let sy = sin(params.tilt.x);
   p = vec3f(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
@@ -145,7 +171,7 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   let sx = sin(params.tilt.y);
   p = vec3f(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
   let perspective = CAMERA / max(CAMERA - p.z, 0.2);
-  let screen = p.xy * perspective;
+  let screen = p.xy * perspective + pivot.xy;
 
   // The pointer pushes particles aside with a slight swirl; a spring brings them home.
   var state = motion[index];
@@ -168,7 +194,7 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   let brightness = particle.c.w * twinkle * (1.0 + glow) * mix(0.8, 1.0, params.dark);
   // On dark, the brightest particles burn toward white; on light they stay ink.
   let hot = clamp((sparkle * 0.3 + glow * 0.08) * params.dark, 0.0, 0.5);
-  let emission = mix(particle.c.rgb, vec3f(1.0), hot) * brightness;
+  let emission = mix(color, vec3f(1.0), hot) * brightness;
 
   let ndc = (screen + offset) / vec2f(params.aspect, 1.0);
   let size = particle.b.w * params.pixelRatio * perspective;

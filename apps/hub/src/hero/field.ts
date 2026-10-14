@@ -22,7 +22,9 @@ const RADIUS = 68;
 const HALF_WIDTH = 18;
 const BAR = BEND - TOP;
 const ARC = Math.PI * RADIUS;
-export const STROKE_LENGTH = 2 * BAR + ARC;
+const STROKE_LENGTH = 2 * BAR + ARC;
+// The flow runs past both ends of the stroke into its round caps, where it narrows to a point.
+const FLOW_LENGTH = STROKE_LENGTH + 2 * HALF_WIDTH;
 // The square: 52 wide at (102, 110), corner radius 12.
 const SQUARE = { x: 102, y: 110, size: 52, radius: 12 };
 // The mark's bounds, for the gradient and for centering.
@@ -57,23 +59,33 @@ type Placement =
   | { kind: typeof KIND_STROKE; progress: number; across: number }
   | { kind: typeof KIND_SOLID };
 
+/** A point on the stroke, `distance` along its center line (negative inside the first cap). */
+function stroke(distance: number, across: number): Placement {
+  return { kind: KIND_STROKE, progress: (distance + HALF_WIDTH) / FLOW_LENGTH, across };
+}
+
+/** How much of the stroke's width a cap still has, `beyond` units past the stroke's end. */
+function capWidth(beyond: number): number {
+  return Math.max(Math.sqrt(1 - (beyond / HALF_WIDTH) ** 2), 1e-3);
+}
+
 /** Where a point of the viewBox falls on the mark, if it does. */
 function place(x: number, y: number): Placement | undefined {
   if (y >= TOP && y <= BEND) {
-    if (Math.abs(x - LEFT) <= HALF_WIDTH) return { kind: KIND_STROKE, progress: (y - TOP) / STROKE_LENGTH, across: LEFT - x };
-    if (Math.abs(x - RIGHT) <= HALF_WIDTH) return { kind: KIND_STROKE, progress: (BAR + ARC + BEND - y) / STROKE_LENGTH, across: x - RIGHT };
+    if (Math.abs(x - LEFT) <= HALF_WIDTH) return stroke(y - TOP, LEFT - x);
+    if (Math.abs(x - RIGHT) <= HALF_WIDTH) return stroke(BAR + ARC + BEND - y, x - RIGHT);
   }
   if (y > BEND) {
     const distance = Math.hypot(x - CENTER_X, y - BEND);
     if (Math.abs(distance - RADIUS) <= HALF_WIDTH) {
       const angle = Math.atan2(y - BEND, CENTER_X - x);
-      return { kind: KIND_STROKE, progress: (BAR + angle * RADIUS) / STROKE_LENGTH, across: distance - RADIUS };
+      return stroke(BAR + angle * RADIUS, distance - RADIUS);
     }
   }
-  // The round caps hold still while the stroke flows, so the ends never thin out.
-  if (y < TOP && (Math.hypot(x - LEFT, y - TOP) <= HALF_WIDTH || Math.hypot(x - RIGHT, y - TOP) <= HALF_WIDTH)) {
-    return { kind: KIND_SOLID };
-  }
+  // The round caps continue the stroke past its ends. Offsets there are stored at full width;
+  // simulate.wgsl narrows them again as the cap closes.
+  if (y < TOP && Math.hypot(x - LEFT, y - TOP) <= HALF_WIDTH) return stroke(y - TOP, (LEFT - x) / capWidth(TOP - y));
+  if (y < TOP && Math.hypot(x - RIGHT, y - TOP) <= HALF_WIDTH) return stroke(STROKE_LENGTH + TOP - y, (x - RIGHT) / capWidth(TOP - y));
   const qx = Math.max(Math.abs(x - (SQUARE.x + SQUARE.size / 2)) - SQUARE.size / 2 + SQUARE.radius, 0);
   const qy = Math.max(Math.abs(y - (SQUARE.y + SQUARE.size / 2)) - SQUARE.size / 2 + SQUARE.radius, 0);
   if (Math.hypot(qx, qy) <= SQUARE.radius) return { kind: KIND_SOLID };

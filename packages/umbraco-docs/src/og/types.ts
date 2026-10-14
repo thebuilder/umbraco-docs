@@ -16,6 +16,8 @@ export interface UmbracoDocsOgConfig {
   brand?: string;
   accent?: string;
   logo?: `/${string}`;
+  /** A public image laid under the text instead of the default gradient, scaled to cover the card. */
+  background?: `/${string}`;
 }
 
 function isSafePrefix(value: string): value is `/${string}` {
@@ -54,6 +56,7 @@ export function validateOgConfig(value: unknown): UmbracoDocsOgConfig {
     ...(input.brand === undefined ? {} : { brand: requireString(input.brand, "brand") }),
     ...(input.accent === undefined ? {} : { accent: requireString(input.accent, "accent") }),
     ...(input.logo === undefined ? {} : { logo: requirePublicAssetPath(input.logo, "logo") }),
+    ...(input.background === undefined ? {} : { background: requirePublicAssetPath(input.background, "background") }),
   });
 }
 
