@@ -39,8 +39,10 @@ struct VertexOut {
     out.position = vec4f(2.0, 2.0, 0.0, 1.0);
     return out;
   }
-  // Points under 3 px keep a 3 px quad and dim instead, so they shimmer rather than alias.
-  let quad = max(sprite.size, 3.0);
+  // Points under 5 px keep a 5 px quad and dim instead. A narrower falloff, sampled at pixel
+  // centers, swings in brightness as the point drifts across the grid, which flickers, most of
+  // all as ink in light mode.
+  let quad = max(sprite.size, 5.0);
   out.coverage = (sprite.size * sprite.size) / (quad * quad);
   out.position = vec4f(sprite.ndc + corner * quad / view.resolution, 0.0, 1.0);
   return out;

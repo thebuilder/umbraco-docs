@@ -38,19 +38,23 @@ const { logo, flow } = Astro.props;
       // header, like Blume's, reach up behind it too, so the particles run on under the header
       // instead of ending in a line at its edge. Only the header: content above it stays clear.
       let lift = 0;
+      // A sticky or fixed element before the hero whose bottom edge meets the hero's top. This
+      // reads layout rather than hit-testing, which during a view transition (Blume's client-side
+      // navigation) hits the transition's snapshot instead of the page.
       const coveringHeader = () => {
         const rect = hero.getBoundingClientRect();
-        // Above the top of the viewport there is nothing to hit-test; keep the last measurement.
+        // Scrolled past the hero's top, the header no longer meets it; keep the last measurement.
         if (rect.top < 1) return lift;
-        for (const element of document.elementsFromPoint(rect.left + rect.width / 2, rect.top - 1)) {
-          for (let node: Element | null = element; node && node !== document.body; node = node.parentElement) {
-            const position = getComputedStyle(node).position;
-            if (position !== "sticky" && position !== "fixed") continue;
-            const box = node.getBoundingClientRect();
-            return box.bottom >= rect.top - 1 ? Math.max(Math.round(rect.top - box.top), 0) : 0;
-          }
+        let covered = 0;
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+        for (let node = walker.nextNode() as Element | null; node && node !== hero; node = walker.nextNode() as Element | null) {
+          if (node.contains(hero)) continue;
+          const position = getComputedStyle(node).position;
+          if (position !== "sticky" && position !== "fixed") continue;
+          const box = node.getBoundingClientRect();
+          if (box.height > 0 && Math.abs(box.bottom - rect.top) <= 1) covered = Math.max(covered, Math.round(rect.top - box.top));
         }
-        return 0;
+        return covered;
       };
       const fit = () => {
         let below = text?.nextElementSibling;
