@@ -1,0 +1,77 @@
+name: Publish @thebuilder/umbraco-docs
+
+# Merging a version bump of packages/umbraco-docs to main publishes it to npm. npm trusts this
+# workflow through trusted publishing (OIDC), so there is no npm token to store or rotate, and the
+# package gets provenance. A run whose version is already on npm does nothing, so it's safe to
+# re-run. The README has the one-time npm setup; the trusted publisher must allow "npm publish",
+# not only staging, or npm refuses the publish.
+on:
+  push:
+    branches: [main]
+    paths: [packages/umbraco-docs/package.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write # push the release tag
+  id-token: write # trusted publishing
+
+# One publish at a time, and never cancel one halfway.
+concurrency:
+  group: publish-umbraco-docs
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check whether this version is new
+        id: version
+        run: |
+          version="$(node -p 'require("./packages/umbraco-docs/package.json").version')"
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          if npm view "@thebuilder/umbraco-docs@$version" version > /dev/null 2>&1; then
+            echo "$version is already on npm; nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.version.outputs.publish == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.version.outputs.publish == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        if: steps.version.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile
+
+      # The same gate as a local release: check, build and test the package, build it against every
+      # Blume fixture, then build the hub.
+      - name: Verify
+        if: steps.version.outputs.publish == 'true'
+        # The fixture tests run pnpm through corepack, which must not stop to ask before a download.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: pnpm run verify
+
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Publish to npm
+        if: steps.version.outputs.publish == 'true'
+        working-directory: packages/umbraco-docs
+        run: |
+          npm install --global npm@^11.5.1
+          npm publish
+
+      - name: Tag the release
+        if: steps.version.outputs.publish == 'true'
+        env:
+          TAG: umbraco-docs@${{ steps.version.outputs.value }}
+        run: |
+          git tag "$TAG"
+          git push origin "$TAG"

@@ -1,6 +1,6 @@
 {
   "name": "@thebuilder/umbraco-docs",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Composable Blume presentation and metadata contracts for TheBuilder Umbraco package documentation.",
   "type": "module",
   "license": "MIT",
@@ -43,7 +43,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "umbraco-docs-og": "./dist/og/cli.js"
+    "umbraco-docs-og": "dist/og/cli.js"
   },
   "scripts": {
     "build": "node scripts/build-shaders.mjs && tsc -p tsconfig.build.json",
