@@ -14,11 +14,9 @@ pnpm run verify
 
 `verify` checks, builds, and tests the shared package, builds it against each Blume version in its fixtures, then builds the hub.
 
-To release the shared package, publish from its folder:
+To release the shared package, bump `version` in `packages/umbraco-docs/package.json` in the pull request. When it merges to `main`, the [publish workflow](.github/workflows/publish.yml) runs `verify`, publishes that version to npm with provenance, and tags the commit `umbraco-docs@<version>`. A version that's already on npm is skipped, and the workflow can also be run by hand from the Actions tab.
 
-```sh
-pnpm --filter @thebuilder/umbraco-docs publish
-```
+Publishing uses npm's trusted publishing, so the repository stores no npm token. It needs a one-time setup on npmjs.com, under the package's Settings, then Trusted publishing: add GitHub Actions with the user `thebuilder`, the repository `umbraco-docs` and the workflow `publish.yml`, and no environment.
 
 ## Package hub
 
