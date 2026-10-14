@@ -16,7 +16,7 @@ pnpm run verify
 
 To release the shared package, bump `version` in `packages/umbraco-docs/package.json` in the pull request. When it merges to `main`, the [publish workflow](.github/workflows/publish.yml) runs `verify`, publishes that version to npm with provenance, and tags the commit `umbraco-docs@<version>`. A version that's already on npm is skipped, and the workflow can also be run by hand from the Actions tab.
 
-Publishing uses npm's trusted publishing, so the repository stores no npm token. It needs a one-time setup on npmjs.com, under the package's Settings, then Trusted publishing: add GitHub Actions with the user `thebuilder`, the repository `umbraco-docs` and the workflow `publish.yml`, and no environment.
+Publishing uses npm's trusted publishing, so the repository stores no npm token. It needs a one-time setup on npmjs.com, under the package's Settings, then Trusted publishing: add GitHub Actions with the user `thebuilder`, the repository `umbraco-docs` and the workflow `publish.yml`, and no environment. Allow the "npm publish" permission: the workflow publishes directly, and a stage-only publisher, npm's default since September 2026, would refuse it.
 
 ## Package hub
 

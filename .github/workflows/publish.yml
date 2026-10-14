@@ -3,7 +3,8 @@ name: Publish @thebuilder/umbraco-docs
 # Merging a version bump of packages/umbraco-docs to main publishes it to npm. npm trusts this
 # workflow through trusted publishing (OIDC), so there is no npm token to store or rotate, and the
 # package gets provenance. A run whose version is already on npm does nothing, so it's safe to
-# re-run. The README has the one-time npm setup.
+# re-run. The README has the one-time npm setup; the trusted publisher must allow "npm publish",
+# not only staging, or npm refuses the publish.
 on:
   push:
     branches: [main]
