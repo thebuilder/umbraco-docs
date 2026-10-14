@@ -1,10 +1,11 @@
 :root {
   color-scheme: light;
-  --hub-background: #ffffff;
-  --hub-foreground: #18181b;
-  --hub-muted: #f4f4f5;
-  --hub-muted-foreground: #52525b;
-  --hub-border: #e4e4e7;
+  /* Blume's own neutrals, so the hub matches the package docs sites. */
+  --hub-background: oklch(100% 0 0);
+  --hub-foreground: oklch(14.5% 0 0);
+  --hub-muted: oklch(96.5% 0 0);
+  --hub-muted-foreground: oklch(53% 0 0);
+  --hub-border: oklch(88% 0.006 260 / 0.72);
   /* The docs family's shared accent, DOCS_ACCENT in @thebuilder/umbraco-docs. */
   --hub-accent: #7557e8;
   --hub-status-stable: #15803d;
@@ -17,11 +18,11 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --hub-background: #09090b;
-    --hub-foreground: #fafafa;
-    --hub-muted: #18181b;
-    --hub-muted-foreground: #a1a1aa;
-    --hub-border: #27272a;
+    --hub-background: oklch(8.5% 0 0);
+    --hub-foreground: oklch(96% 0 0);
+    --hub-muted: oklch(16% 0 0);
+    --hub-muted-foreground: oklch(68% 0 0);
+    --hub-border: oklch(24% 0 0 / 0.8);
     --hub-accent: #a78bfa;
     --hub-status-stable: #4ade80;
     --hub-status-preview: #c4b5fd;
@@ -32,11 +33,11 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --hub-background: #09090b;
-  --hub-foreground: #fafafa;
-  --hub-muted: #18181b;
-  --hub-muted-foreground: #a1a1aa;
-  --hub-border: #27272a;
+  --hub-background: oklch(8.5% 0 0);
+  --hub-foreground: oklch(96% 0 0);
+  --hub-muted: oklch(16% 0 0);
+  --hub-muted-foreground: oklch(68% 0 0);
+  --hub-border: oklch(24% 0 0 / 0.8);
   --hub-accent: #a78bfa;
   --hub-status-stable: #4ade80;
   --hub-status-preview: #c4b5fd;

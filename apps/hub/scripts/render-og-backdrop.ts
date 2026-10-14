@@ -18,13 +18,13 @@ const WIDTH = 1200;
 const HEIGHT = 630;
 // Rendered at twice the size and scaled down, so the particles stay crisp.
 const SCALE = 2;
-// The page background in dark mode (--hub-background), with a faint violet glow behind the mark.
+// The page background in dark mode (--hub-background, oklch(8.5% 0 0)), with a faint violet glow behind the mark.
 const BACKGROUND = `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH * SCALE}" height="${HEIGHT * SCALE}">
   <radialGradient id="glow" cx="0.78" cy="0.5" r="0.55">
     <stop offset="0" stop-color="#7c6cf0" stop-opacity="0.2"/>
     <stop offset="1" stop-color="#7c6cf0" stop-opacity="0"/>
   </radialGradient>
-  <rect width="100%" height="100%" fill="#09090b"/>
+  <rect width="100%" height="100%" fill="#020202"/>
   <rect width="100%" height="100%" fill="url(#glow)"/>
 </svg>`;
 const OUTPUT = fileURLToPath(new URL("../public/og/backdrop.png", import.meta.url));
