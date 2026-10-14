@@ -68,6 +68,15 @@ const { logo, flow } = Astro.props;
       layout.observe(hero);
       layout.observe(document.body);
 
+      // Browsers without scroll-driven animations (landing.css) get the header's scroll state here.
+      const scrollState = CSS.supports("animation-timeline: scroll()")
+        ? undefined
+        : () => document.documentElement.toggleAttribute("data-udocs-scrolled", window.scrollY > 8);
+      if (scrollState) {
+        scrollState();
+        window.addEventListener("scroll", scrollState, { passive: true });
+      }
+
       const stop = startHeroParticles(canvas, {
         logo,
         ...(container.dataset.flow ? { flow: JSON.parse(container.dataset.flow) } : {}),
@@ -79,6 +88,10 @@ const { logo, flow } = Astro.props;
       document.addEventListener("astro:before-swap", () => {
         layout.disconnect();
         document.documentElement.removeAttribute("data-udocs-particles-header");
+        if (scrollState) {
+          window.removeEventListener("scroll", scrollState);
+          document.documentElement.removeAttribute("data-udocs-scrolled");
+        }
         stop();
       }, { once: true });
     }

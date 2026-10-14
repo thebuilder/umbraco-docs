@@ -64,7 +64,9 @@ export const packages = [
     name: "API OIDC",
     summary: "Let frontends call the Umbraco Delivery API and your own API endpoints with the OIDC token their platform already issues, instead of a shared API key.",
     links: {
-      docs: "https://github.com/thebuilder/umbraco-api-oidc#readme",
+      docs: "https://api-oidc.thebuilder.dk/",
+      nuget: "https://www.nuget.org/packages/TheBuilder.ApiOidc",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.apioidc",
       github: "https://github.com/thebuilder/umbraco-api-oidc",
     },
     logo: "/logos/api-oidc.svg",

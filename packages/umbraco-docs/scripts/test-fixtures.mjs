@@ -23,6 +23,9 @@ for (const directory of directories) {
   assert.match(html, /Related package/);
   assert.match(html, /astro:page-load/);
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
-  if (directory.endsWith("2.2.3")) assert.match(html, /data-udocs-particles/);
+  if (directory.endsWith("2.2.3")) {
+    assert.match(html, /data-udocs-particles/);
+    assert.match(html, /class="udocs-hero__eyebrow"[^>]*>Shared docs fixture</);
+  }
   else assert.doesNotMatch(html, /data-udocs-particles/);
 }

@@ -2,7 +2,7 @@
 
 @layer udocs.tokens {
   :where([data-udocs-root]) {
-    --udocs-accent: var(--blume-accent, #2563eb);
+    --udocs-accent: var(--blume-accent, #7557e8);
     --udocs-gradient: linear-gradient(105deg, #60a5fa, #a78bfa 52%, #f472b6);
     --udocs-border: var(--blume-border, #d4d4d8);
     --udocs-muted: var(--blume-muted, #f4f4f5);
@@ -35,15 +35,27 @@
     /* Longhands only: the timeline isn't allowed in the animation shorthand, which minifiers would merge them into. */
     html[data-udocs-particles-header] [data-blume-header] { animation-name: udocs-header-clear; animation-timing-function: linear; animation-fill-mode: both; animation-timeline: scroll(root); animation-range: 0 8rem; }
   }
+  /* Without scroll-driven animations, HeroParticles marks the page as scrolled instead. */
+  @supports not (animation-timeline: scroll()) {
+    html[data-udocs-particles-header] [data-blume-header] { transition: background-color 200ms ease, backdrop-filter 200ms ease; }
+    html[data-udocs-particles-header]:not([data-udocs-scrolled]) [data-blume-header] { background-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  }
   .udocs-hero__glow { transition: opacity 600ms ease; }
   .udocs-particles:has(> [data-ready]) ~ .udocs-hero__glow { opacity: 0; }
   .udocs-hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
   .udocs-hero__logo { width: 4.5rem; height: 4.5rem; object-fit: contain; }
   .udocs-hero__title { max-width: 20ch; margin: 0; font-family: var(--blume-font-display, system-ui); font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
   .udocs-hero__accent { color: transparent; background: var(--udocs-gradient); background-clip: text; -webkit-background-clip: text; }
+  .udocs-hero__eyebrow { margin: 0; color: var(--udocs-accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
   .udocs-hero__description { max-width: 44rem; margin: 0; color: var(--udocs-muted-foreground); font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
   .udocs-hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
   .udocs-hero__compatibility { margin: 0; color: var(--udocs-muted-foreground); font-size: 0.875rem; }
+  /* Over the particles, the hero's secondary text is brighter than usual, and the particles dim
+     behind it, so it keeps 4.5:1 even against the brightest of them. The buttons get a frosted
+     backdrop, which an outlined button needs to stay legible there. */
+  .udocs-hero:has(> .udocs-particles) :is(.udocs-hero__description, .udocs-hero__compatibility) { color: color-mix(in oklab, var(--udocs-foreground) 82%, transparent); }
+  .udocs-hero:has(> .udocs-particles) .udocs-hero__eyebrow { color: color-mix(in oklab, var(--udocs-accent) 60%, var(--udocs-foreground)); }
+  .udocs-hero:has(> .udocs-particles) .udocs-hero__actions > * { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
   .udocs-install { display: inline-flex; align-items: center; max-width: 100%; gap: 0.75rem; padding: 0.55rem 0.6rem 0.55rem 1rem; border: 1px solid var(--udocs-border); border-radius: var(--udocs-radius); background: var(--blume-code-background, var(--udocs-muted)); font-family: var(--blume-font-mono, monospace); font-size: 0.9rem; }
   .udocs-install > span { color: var(--udocs-muted-foreground); user-select: none; }
   .udocs-install code { overflow-x: auto; color: var(--udocs-foreground); white-space: nowrap; }
