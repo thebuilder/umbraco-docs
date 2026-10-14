@@ -5,7 +5,7 @@ import { clock, frame, frameLoop, init, surface } from "vgpu";
 import type { Frame, FrameLoopHandle } from "vgpu";
 
 import { createParticleField, type FlowStroke, type LogoPixels } from "./field.js";
-import { CENTERED, createHeroScene } from "./scene.js";
+import { CENTERED, createHeroScene, type HeroLayout } from "./scene.js";
 
 const INTRO_SECONDS = 3.4;
 // How far the logo turns toward the pointer at most, in radians: sideways, then up and down.
@@ -13,6 +13,8 @@ const MAX_TILT = [0.12, 0.07] as const;
 const CLEAR = [0, 0, 0, 0] as const;
 // The logo is drawn into a square this many pixels wide before particles are placed on it.
 const RASTER = 256;
+// How much of an anchor's box the logo fills, leaving room for the particles' glow.
+const ANCHOR_FILL = 0.9;
 
 /** A stroke of the logo that flows, as SVG path data in the logo's own coordinates. */
 export interface HeroFlow {
@@ -30,6 +32,11 @@ export interface HeroParticlesOptions {
   flow?: HeroFlow;
   /** The hero's text; the particles step back behind it. */
   text?: HTMLElement;
+  /**
+   * Where the logo forms, such as a column beside the text. The logo centers on this element's
+   * box and fits inside it. Without one, it centers on the canvas.
+   */
+  anchor?: HTMLElement;
   /** Where the pointer is followed; defaults to the canvas's parent. */
   pointerArea?: HTMLElement;
   /**
@@ -56,7 +63,7 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
   }
 
   const area = options.pointerArea ?? canvas.parentElement ?? canvas;
-  const { text } = options;
+  const { text, anchor } = options;
   const root = document.documentElement;
   const systemDark = matchMedia("(prefers-color-scheme: dark)");
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -92,35 +99,45 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
     const dark = { value: isDark() ? 1 : 0, target: isDark() ? 1 : 0 };
     scene.look({ dark: dark.value });
     scene.move({ intro: reducedMotion ? 1 : 0 });
-    // Center the logo on the part of the canvas that isn't covered.
-    const place = () => {
-      const height = canvas.clientHeight || 1;
-      const covered = Math.min(Math.max(options.coveredTop?.() ?? 0, 0), height / 2) / height;
-      scene.place({ height: CENTERED.height * (1 - covered), offset: [0, CENTERED.offset[1] * (1 - covered) - covered] });
+    // Where the logo is, in view units, so the tilt can follow the pointer from there.
+    let mark: HeroLayout = CENTERED;
+    // Redraws a still frame after the layout changes, with reduced motion.
+    let redraw = () => {};
+    // Fit the logo into its anchor, or center it on the part of the canvas that isn't covered.
+    // Measure where the text sits too, so the composite can step back behind it.
+    const measure = () => {
+      const box = canvas.getBoundingClientRect();
+      if (box.width === 0 || box.height === 0) return;
+      const uv = (x: number, y: number) => [(x - box.left) / box.width, (y - box.top) / box.height] as [number, number];
+      if (anchor) {
+        const rect = anchor.getBoundingClientRect();
+        const [x, y] = uv((rect.left + rect.right) / 2, (rect.top + rect.bottom) / 2);
+        const aspect = box.width / box.height;
+        mark = {
+          height: (rect.height / box.height) * ANCHOR_FILL,
+          width: (rect.width / box.width) * ANCHOR_FILL,
+          offset: [(x * 2 - 1) * aspect, 1 - y * 2],
+        };
+      } else {
+        const covered = Math.min(Math.max(options.coveredTop?.() ?? 0, 0), box.height / 2) / box.height;
+        mark = { height: CENTERED.height * (1 - covered), offset: [0, CENTERED.offset[1] * (1 - covered) - covered] };
+      }
+      scene.place(mark);
+      if (text) {
+        const rect = text.getBoundingClientRect();
+        scene.look({ text: { min: uv(rect.left, rect.top), max: uv(rect.right, rect.bottom) } });
+      }
+      redraw();
     };
     onCleanup(output.onResize(() => {
       scene.resize(output.dpr);
-      place();
+      measure();
     }));
-
-    // Measure where the text sits, so the composite can step back behind it.
-    const measureText = () => {
-      if (!text) return;
-      const box = canvas.getBoundingClientRect();
-      const rect = text.getBoundingClientRect();
-      if (box.width === 0 || box.height === 0) return;
-      scene.look({
-        text: {
-          min: [(rect.left - box.left) / box.width, (rect.top - box.top) / box.height],
-          max: [(rect.right - box.left) / box.width, (rect.bottom - box.top) / box.height],
-        },
-      });
-    };
-    const layout = new ResizeObserver(measureText);
+    const layout = new ResizeObserver(measure);
     layout.observe(canvas);
-    if (text) layout.observe(text);
+    for (const element of [text, anchor]) if (element) layout.observe(element);
     onCleanup(() => layout.disconnect());
-    measureText();
+    measure();
 
     const compiled = await scene.compile().then(() => true, () => false);
     if (!compiled) return fallBack();
@@ -134,6 +151,7 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
     if (reducedMotion) {
       // The settled logo, redrawn only when the size or theme changes.
       const still = () => frame(gpu, render);
+      redraw = still;
       const resizeObserver = new ResizeObserver(still);
       resizeObserver.observe(canvas);
       onCleanup(() => resizeObserver.disconnect());
@@ -178,12 +196,14 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
       pointer.y += (pointer.targetY - pointer.y) * follow(10);
       pointer.active += (pointer.targetActive - pointer.active) * follow(4);
       // The logo turns gently toward the pointer, and sways on its own when left alone. The turn
-      // follows the pointer's share of the hero's width, not its distance, so a wide hero turns no
-      // further than a narrow one, and it stays small: tilted further, the logo skews and the dust
-      // field shows its edge.
-      const across = Math.max(-1, Math.min(1, pointer.x / scene.aspect));
+      // follows how far the pointer is from the logo as a share of the hero's width, not its
+      // distance, so a wide hero turns no further than a narrow one, and it stays small: tilted
+      // further, the logo skews and the dust field shows its edge.
+      const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+      const across = clamp((pointer.x - mark.offset[0]) / scene.aspect);
+      const up = clamp(pointer.y - mark.offset[1]);
       const tiltX = across * MAX_TILT[0] * pointer.active + Math.sin(elapsed * 0.23) * MAX_TILT[0] * 0.5 * (1 - pointer.active);
-      const tiltY = -pointer.y * MAX_TILT[1] * pointer.active + Math.sin(elapsed * 0.17) * MAX_TILT[1] * 0.5 * (1 - pointer.active);
+      const tiltY = -up * MAX_TILT[1] * pointer.active + Math.sin(elapsed * 0.17) * MAX_TILT[1] * 0.5 * (1 - pointer.active);
       tilt.x += (tiltX - tilt.x) * follow(2);
       tilt.y += (tiltY - tilt.y) * follow(2);
       dark.value += (dark.target - dark.value) * follow(6);

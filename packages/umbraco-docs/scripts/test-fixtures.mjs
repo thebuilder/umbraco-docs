@@ -28,4 +28,16 @@ for (const directory of directories) {
     assert.match(html, /class="udocs-hero__eyebrow"[^>]*>Shared docs fixture</);
   }
   else assert.doesNotMatch(html, /data-udocs-particles/);
+  // 1.4.3 keeps the centered hero with its small logo; the others split it, and 1.6.4 draws its
+  // logo large beside the text, where 2.2.3's particles form instead.
+  if (directory.endsWith("1.4.3")) {
+    assert.match(html, /data-layout="centered"/);
+    assert.match(html, /class="udocs-hero__logo"/);
+    assert.doesNotMatch(html, /data-udocs-hero-art/);
+  } else {
+    assert.match(html, /data-layout="split"/);
+    assert.match(html, /data-udocs-hero-art/);
+    assert.doesNotMatch(html, /class="udocs-hero__logo"/);
+    if (directory.endsWith("1.6.4")) assert.match(html, /class="udocs-hero__art-logo"/);
+  }
 }
