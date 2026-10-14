@@ -70,7 +70,8 @@ img { max-width: 100%; }
   text-decoration: none;
   transition: border-color 180ms ease, background-color 180ms ease;
 }
-.hub-button--secondary { color: var(--udocs-foreground); }
+/* Frosted, so it stays legible over the particles; the shared styles blur what's behind it. */
+.hub-button--secondary { background: color-mix(in oklab, var(--hub-background) 55%, transparent); color: var(--udocs-foreground); }
 .hub-button--secondary:hover { border-color: color-mix(in oklab, var(--udocs-accent) 45%, var(--udocs-border)); }
 .hub-button:focus-visible { outline: 2px solid var(--udocs-accent); outline-offset: 3px; }
 

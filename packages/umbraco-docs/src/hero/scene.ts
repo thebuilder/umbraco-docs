@@ -26,6 +26,8 @@ export interface HeroLook {
   text?: { min: [number, number]; max: [number, number] };
   /** Fades the particles out toward the bottom edge, into the page below. */
   fadeBottom?: boolean;
+  /** How far the particles step back behind the text, from 0 to 1. */
+  textDim?: number;
 }
 
 export interface HeroLayout {
@@ -102,7 +104,9 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
     label: "hero-composite",
     set: {
       samp,
-      params: { textMin: [0, 0], textMax: [0, 0], dark: 1, exposure: 2.4, bloom: 1.6, textDim: 0.45, fade: 1 },
+      // Dim enough that the hero's secondary text, brightened over the particles in
+      // landing.css, keeps 4.5:1 even against the brightest particles behind it.
+      params: { textMin: [0, 0], textMax: [0, 0], dark: 1, exposure: 2.4, bloom: 1.6, textDim: 0.65, fade: 1 },
     },
   });
 
@@ -154,13 +158,14 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
       simulate.set({ params: values });
     },
 
-    look({ dark, text, fadeBottom }: HeroLook) {
+    look({ dark, text, fadeBottom, textDim }: HeroLook) {
       if (dark !== undefined) simulate.set({ params: { dark } });
       composite.set({
         params: {
           ...(dark === undefined ? {} : { dark }),
           ...(text === undefined ? {} : { textMin: text.min, textMax: text.max }),
           ...(fadeBottom === undefined ? {} : { fade: fadeBottom ? 1 : 0 }),
+          ...(textDim === undefined ? {} : { textDim }),
         },
       });
     },
