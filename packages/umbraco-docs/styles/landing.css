@@ -42,7 +42,8 @@
   }
   .udocs-hero__glow { transition: opacity 600ms ease; }
   .udocs-particles:has(> [data-ready]) ~ .udocs-hero__glow { opacity: 0; }
-  .udocs-hero__inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
+  .udocs-hero__inner { position: relative; }
+  .udocs-hero__copy { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; text-align: center; }
   .udocs-hero__logo { width: 4.5rem; height: 4.5rem; object-fit: contain; }
   .udocs-hero__title { max-width: 20ch; margin: 0; font-family: var(--blume-font-display, system-ui); font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
   .udocs-hero__accent { color: transparent; background: var(--udocs-gradient); background-clip: text; -webkit-background-clip: text; }
@@ -56,6 +57,23 @@
   .udocs-hero:has(> .udocs-particles) :is(.udocs-hero__description, .udocs-hero__compatibility) { color: color-mix(in oklab, var(--udocs-foreground) 82%, transparent); }
   .udocs-hero:has(> .udocs-particles) .udocs-hero__eyebrow { color: color-mix(in oklab, var(--udocs-accent) 60%, var(--udocs-foreground)); }
   .udocs-hero:has(> .udocs-particles) .udocs-hero__actions > * { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  /* The split layout: the text on the left, the logo large on the right, where a particle logo
+     forms too. Narrow screens put a smaller logo above the text. */
+  .udocs-hero[data-layout="split"] .udocs-hero__inner { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center; gap: 2rem clamp(2rem, 5vw, 4rem); }
+  .udocs-hero[data-layout="split"] .udocs-hero__copy { align-items: flex-start; text-align: start; }
+  .udocs-hero[data-layout="split"] .udocs-hero__actions { justify-content: flex-start; }
+  .udocs-hero__art { position: relative; align-self: stretch; min-height: 20rem; }
+  /* The same box the particle logo fills. */
+  .udocs-hero__art-logo { position: absolute; inset: 5%; width: 90%; height: 90%; object-fit: contain; }
+  .udocs-hero:has(> .udocs-particles) .udocs-hero__art-logo { display: none; }
+  /* Without WebGPU, the still logo stands where the particles would form, in full. */
+  .udocs-hero[data-layout="split"] .udocs-particles__fallback { top: calc(var(--udocs-particles-art-top, 0px) + 0.05 * var(--udocs-particles-art-height, 0px)); left: calc(var(--udocs-particles-art-left, 0px) + 0.05 * var(--udocs-particles-art-width, 0px)); width: calc(0.9 * var(--udocs-particles-art-width, 0px)); height: calc(0.9 * var(--udocs-particles-art-height, 0px)); opacity: 1; }
+  @media (width <= 56rem) {
+    .udocs-hero[data-layout="split"] .udocs-hero__inner { grid-template-columns: minmax(0, 1fr); }
+    .udocs-hero[data-layout="split"] .udocs-hero__copy { align-items: center; text-align: center; }
+    .udocs-hero[data-layout="split"] .udocs-hero__actions { justify-content: center; }
+    .udocs-hero__art { order: -1; min-height: 0; height: clamp(9rem, 36vw, 15rem); }
+  }
   .udocs-install { display: inline-flex; align-items: center; max-width: 100%; gap: 0.75rem; padding: 0.55rem 0.6rem 0.55rem 1rem; border: 1px solid var(--udocs-border); border-radius: var(--udocs-radius); background: var(--blume-code-background, var(--udocs-muted)); font-family: var(--blume-font-mono, monospace); font-size: 0.9rem; }
   .udocs-install > span { color: var(--udocs-muted-foreground); user-select: none; }
   .udocs-install code { overflow-x: auto; color: var(--udocs-foreground); white-space: nowrap; }

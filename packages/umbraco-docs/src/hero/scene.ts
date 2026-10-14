@@ -35,6 +35,8 @@ export interface HeroLayout {
   height: number;
   /** Mark center in view units: x from -aspect to aspect, y from -1 to 1, up. */
   offset: [number, number];
+  /** Widest the mark gets, as a share of the output width. 0.875 by default. */
+  width?: number;
 }
 
 /** The page hero's layout: the mark fills most of the height, centered. */
@@ -113,7 +115,7 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
   let aspect = 1;
   // The mark keeps its share of the height, narrowed on portrait screens so it still fits.
   const fit = () => {
-    const markScale = Math.min((2 * layout.height) / field.size[1], (aspect * 1.75) / field.size[0]);
+    const markScale = Math.min((2 * layout.height) / field.size[1], (2 * aspect * (layout.width ?? 0.875)) / field.size[0]);
     simulate.set({ params: { aspect, markScale, markOffset: layout.offset } });
   };
 
