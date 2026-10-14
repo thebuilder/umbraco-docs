@@ -34,25 +34,39 @@ const { logo, flow } = Astro.props;
       if (!canvas || !hero || !logo) continue;
       const text = hero.querySelector<HTMLElement>(".udocs-hero__inner") ?? undefined;
 
-      // Stop above whatever follows the text in the hero, such as a screenshot. A hero near the top
-      // of the page, under a sticky header like Blume's, reaches up behind the header too, so the
-      // particles run on under it instead of ending in a line at its edge.
+      // Stop above whatever follows the text in the hero, such as a screenshot. Under a sticky
+      // header, like Blume's, reach up behind it too, so the particles run on under the header
+      // instead of ending in a line at its edge. Only the header: content above it stays clear.
       let lift = 0;
+      const coveringHeader = () => {
+        const rect = hero.getBoundingClientRect();
+        // Above the top of the viewport there is nothing to hit-test; keep the last measurement.
+        if (rect.top < 1) return lift;
+        for (const element of document.elementsFromPoint(rect.left + rect.width / 2, rect.top - 1)) {
+          for (let node: Element | null = element; node && node !== document.body; node = node.parentElement) {
+            const position = getComputedStyle(node).position;
+            if (position !== "sticky" && position !== "fixed") continue;
+            const box = node.getBoundingClientRect();
+            return box.bottom >= rect.top - 1 ? Math.max(Math.round(rect.top - box.top), 0) : 0;
+          }
+        }
+        return 0;
+      };
       const fit = () => {
         let below = text?.nextElementSibling;
         while (below && ["SCRIPT", "STYLE", "TEMPLATE"].includes(below.tagName)) below = below.nextElementSibling;
         if (below instanceof HTMLElement) container.style.setProperty("--udocs-particles-height", `${below.offsetTop}px`);
         else container.style.removeProperty("--udocs-particles-height");
-        const top = hero.getBoundingClientRect().top + window.scrollY;
-        lift = top > 0 && top <= 160 ? Math.round(top) : 0;
-        container.style.setProperty("--udocs-particles-lift", `${lift}px`);
+        lift = coveringHeader();
+        hero.style.setProperty("--udocs-particles-lift", `${lift}px`);
+        // The header goes clear at the top of the page only when the particles run behind it.
+        document.documentElement.toggleAttribute("data-udocs-particles-header", lift > 0);
       };
       // Anything above the hero can move it too, such as a header changing height or a late banner.
+      // Both observers report once right away, which does the first fit.
       const layout = new ResizeObserver(fit);
       layout.observe(hero);
       layout.observe(document.body);
-      window.addEventListener("resize", fit);
-      fit();
 
       const stop = startHeroParticles(canvas, {
         logo,
@@ -64,7 +78,7 @@ const { logo, flow } = Astro.props;
       });
       document.addEventListener("astro:before-swap", () => {
         layout.disconnect();
-        window.removeEventListener("resize", fit);
+        document.documentElement.removeAttribute("data-udocs-particles-header");
         stop();
       }, { once: true });
     }

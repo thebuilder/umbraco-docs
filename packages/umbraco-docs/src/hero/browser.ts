@@ -230,13 +230,10 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
 
 /** Draws the logo into pixels and samples its flow, then places the particles. */
 async function loadField({ logo, flow }: HeroParticlesOptions) {
-  const image = new Image();
-  image.crossOrigin = "anonymous";
-  image.src = logo;
-  await image.decode();
+  const { image, viewBox } = await loadLogo(logo);
 
   // Fit the logo into the square, keeping its shape.
-  const box = flow ? viewBoxSize(flow.viewBox) : await logoSize(logo, image);
+  const box = flow ? viewBoxSize(flow.viewBox) : viewBox ?? [image.naturalWidth || 1, image.naturalHeight || 1];
   const scale = RASTER / Math.max(box[0], box[1]);
   const offset = [(RASTER - box[0] * scale) / 2, (RASTER - box[1] * scale) / 2] as const;
   const raster = document.createElement("canvas");
@@ -252,16 +249,31 @@ async function loadField({ logo, flow }: HeroParticlesOptions) {
 }
 
 /**
- * An SVG with only a viewBox has no natural size of its own; browsers report 0, or a default box
- * that would squash it. Its viewBox has the real shape.
+ * Loads the logo once. An SVG with only a viewBox has no natural size of its own (browsers report
+ * 0, or a default box that would squash it), so an SVG is read as text for its viewBox and drawn
+ * from that same text.
  */
-async function logoSize(url: string, image: HTMLImageElement): Promise<readonly [number, number]> {
-  const natural = [image.naturalWidth || 1, image.naturalHeight || 1] as const;
-  if (!/\.svg(?:[?#]|$)/i.test(url)) return natural;
-  const source = await fetch(url).then((response) => response.text()).catch(() => "");
-  const viewBox = new DOMParser().parseFromString(source, "image/svg+xml").documentElement.getAttribute("viewBox");
-  const [, , width, height] = viewBox?.trim().split(/[\s,]+/).map(Number) ?? [];
-  return width && height ? [width, height] : natural;
+async function loadLogo(url: string): Promise<{ image: HTMLImageElement; viewBox?: readonly [number, number] }> {
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  if (!/\.svg(?:[?#]|$)/i.test(url)) {
+    image.src = url;
+    await image.decode();
+    return { image };
+  }
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Logo request failed: ${response.status}`);
+  const source = await response.text();
+  const objectUrl = URL.createObjectURL(new Blob([source], { type: "image/svg+xml" }));
+  try {
+    image.src = objectUrl;
+    await image.decode();
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+  const attribute = new DOMParser().parseFromString(source, "image/svg+xml").documentElement.getAttribute("viewBox");
+  const [, , width, height] = attribute?.trim().split(/[\s,]+/).map(Number) ?? [];
+  return width && height ? { image, viewBox: [width, height] } : { image };
 }
 
 function viewBoxSize(viewBox: HeroFlow["viewBox"]): readonly [number, number] {

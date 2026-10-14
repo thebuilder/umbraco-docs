@@ -12,7 +12,7 @@ import sharp from "sharp";
 import { frame, target } from "vgpu";
 import { init } from "vgpu/node";
 
-import { markFlow } from "../src/site.ts";
+import { markFlow, markFlowPoints } from "../src/site.ts";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -35,18 +35,9 @@ const logo = await sharp(await readFile(new URL("../public/mark.svg", import.met
   .ensureAlpha()
   .raw()
   .toBuffer({ resolveWithObject: true });
-// The page samples markFlow.path with the browser's SVG geometry; Node has none, so trace the
-// same U here: down the left bar, around the half circle, up the right bar.
-const points: [number, number][] = [];
-for (let y = 44; y < 136; y++) points.push([60, y]);
-for (let step = 0; step <= 200; step++) {
-  const angle = (step / 200) * Math.PI;
-  points.push([128 - 68 * Math.cos(angle), 136 + 68 * Math.sin(angle)]);
-}
-for (let y = 135; y >= 44; y--) points.push([196, y]);
 const field = createParticleField(
   { data: logo.data, width: logo.info.width, height: logo.info.height },
-  { flow: { points, width: markFlow.width } },
+  { flow: { points: markFlowPoints(), width: markFlow.width } },
 );
 
 const gpu = await init({ requiredLimits: { maxStorageBuffersInVertexStage: 1 } });
