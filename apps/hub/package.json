@@ -7,7 +7,7 @@
     "build": "pnpm --filter @thebuilder/umbraco-docs build && pnpm run build:site",
     "build:site": "node node_modules/@thebuilder/umbraco-docs/dist/og/cli.js && astro check && astro build",
     "check:og": "node node_modules/@thebuilder/umbraco-docs/dist/og/cli.js --check",
-    "og:backdrop": "node scripts/render-og-backdrop.ts"
+    "og:backdrop": "pnpm --filter @thebuilder/umbraco-docs build && node scripts/render-og-backdrop.ts"
   },
   "dependencies": {
     "@thebuilder/umbraco-docs": "workspace:*",
@@ -17,7 +17,6 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
-    "@vgpu/wgsl": "0.6.0",
     "sharp": "0.35.3",
     "typescript": "^5.9.2"
   }

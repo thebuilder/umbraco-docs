@@ -5,14 +5,14 @@
 //
 //   pnpm --filter @thebuilder/umbraco-hub og:backdrop
 
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { prepareShader } from "@vgpu/wgsl/prepare";
-import { resolveShader } from "@vgpu/wgsl/runtime";
+import { createHeroScene, createParticleField } from "@thebuilder/umbraco-docs/hero";
 import sharp from "sharp";
 import { frame, target } from "vgpu";
 import { init } from "vgpu/node";
 
-import { createHeroScene } from "../src/hero/scene.ts";
+import { markFlow, markFlowPoints } from "../src/site.ts";
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -29,24 +29,21 @@ const BACKGROUND = `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH * SCA
 </svg>`;
 const OUTPUT = fileURLToPath(new URL("../public/og/backdrop.png", import.meta.url));
 
-async function shader(name: string) {
-  const entry = fileURLToPath(new URL(`../src/hero/${name}.wgsl`, import.meta.url));
-  return prepareShader(await resolveShader({ entry }), entry);
-}
+// The logo, drawn the way the page draws it: into a 256 pixel square.
+const logo = await sharp(await readFile(new URL("../public/mark.svg", import.meta.url)))
+  .resize(256, 256, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .ensureAlpha()
+  .raw()
+  .toBuffer({ resolveWithObject: true });
+const field = createParticleField(
+  { data: logo.data, width: logo.info.width, height: logo.info.height },
+  { flow: { points: markFlowPoints(), width: markFlow.width } },
+);
 
 const gpu = await init({ requiredLimits: { maxStorageBuffersInVertexStage: 1 } });
 const output = target(gpu, { size: [WIDTH * SCALE, HEIGHT * SCALE], label: "og-backdrop" });
-const scene = createHeroScene(gpu, output, {
-  simulate: await shader("simulate"),
-  particles: await shader("particles"),
-  bright: await shader("bright"),
-  blur: await shader("blur"),
-  composite: await shader("composite"),
-}, {
-  // The mark stands on the right, clear of the title and description on the left.
-  height: 0.78,
-  offset: [1.12, 0],
-});
+// The mark stands on the right, clear of the title and description on the left.
+const scene = createHeroScene(gpu, output, field, { height: 0.78, offset: [1.12, 0] });
 scene.resize(SCALE);
 // A fixed moment: the mark settled, turned slightly toward the text, with the light pulse on it.
 scene.move({ time: 14, dt: 0, intro: 1, tilt: [-0.12, 0.03] });

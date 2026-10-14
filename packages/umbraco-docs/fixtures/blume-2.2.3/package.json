@@ -5,6 +5,7 @@
   "scripts": { "build": "blume check --isolated && blume build --isolated" },
   "dependencies": {
     "@thebuilder/umbraco-docs": "file:../..",
-    "blume": "2.2.3"
+    "blume": "2.2.3",
+    "vgpu": "0.6.0"
   }
 }

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- A fixture mark in the family colors: a ring and a tile, for the particle hero to form. -->
+  <circle cx="104" cy="128" r="64" fill="none" stroke="#60a5fa" stroke-width="32"/>
+  <rect x="140" y="64" width="96" height="128" rx="24" fill="#ed63ad"/>
+</svg>
