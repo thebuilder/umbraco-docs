@@ -2,7 +2,7 @@
 
 @layer udocs.tokens {
   :where([data-udocs-root]) {
-    --udocs-accent: var(--blume-accent, #2563eb);
+    --udocs-accent: var(--blume-accent, #7557e8);
     --udocs-gradient: linear-gradient(105deg, #60a5fa, #a78bfa 52%, #f472b6);
     --udocs-border: var(--blume-border, #d4d4d8);
     --udocs-muted: var(--blume-muted, #f4f4f5);

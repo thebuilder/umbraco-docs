@@ -50,6 +50,21 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 
 Elements that come into view together reveal one after another, 60ms apart. To hold reveals back, for example until a background intro gets going, set `--udocs-reveal-offset` on a container, such as `.udocs-hero__inner { --udocs-reveal-offset: 300ms; }`.
 
+## Shared theme
+
+Every package docs site uses the same Blume theme, so they look like one family: the violet accent from the middle of the family gradient, and Inter Tight headings. Spread `docsTheme` into `theme` in `blume.config.ts`, before any site-specific settings, instead of setting an accent of your own:
+
+```ts
+import { docsTheme } from "@thebuilder/umbraco-docs";
+import { defineConfig } from "blume";
+
+export default defineConfig({
+  theme: { ...docsTheme },
+});
+```
+
+The accent has a shade per color mode, `#7557e8` in light and `#a78bfa` in dark, and each meets WCAG AA as link text and with its button label, which Blume picks: white in light, dark in dark. It needs Blume 2. `DOCS_ACCENT` exports the two shades for other uses, such as the hub's own CSS.
+
 ## Particle hero
 
 `HeroParticles` draws the site's logo in glowing WebGPU particles behind the hero text, as on [umbraco.thebuilder.dk](https://umbraco.thebuilder.dk). The particles swirl in from a scattered sky, settle into the logo in its own colors, and scatter around the pointer. Put it in the hero's `background` slot, and leave out the hero's own `logo`, since the particles draw it:
