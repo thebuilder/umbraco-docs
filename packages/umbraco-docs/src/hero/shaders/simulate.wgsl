@@ -189,13 +189,16 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   // Light builds up near the pointer and in moving particles.
   glow += reach * 0.9 + min(length(velocity) * 0.8, 1.2);
 
-  let twinkle = mix(1.0, 0.55 + 0.45 * sin(t * 2.3 + phase * 3.0), sparkle);
-  let brightness = particle.c.w * twinkle * (1.0 + glow) * mix(0.8, 1.0, params.dark);
+  // Sparkles are points of light, so they only twinkle and stand out on dark. On light they are
+  // ink, where a bright, pulsing sparkle reads as a flickering blot: there they match the rest.
+  let lightSparkle = sparkle * (1.0 - params.dark);
+  let twinkle = mix(1.0, 0.55 + 0.45 * sin(t * 2.3 + phase * 3.0), sparkle * params.dark);
+  let brightness = particle.c.w * twinkle * (1.0 + glow) * mix(0.8, 1.0, params.dark) * mix(1.0, 0.4, lightSparkle);
   // On dark, the brightest particles burn toward white; on light they stay ink.
   let hot = clamp((sparkle * 0.3 + glow * 0.08) * params.dark, 0.0, 0.5);
   let emission = mix(color, vec3f(1.0), hot) * brightness;
 
   let ndc = (screen + offset) / vec2f(params.aspect, 1.0);
-  let size = particle.b.w * params.pixelRatio * perspective;
+  let size = particle.b.w * params.pixelRatio * perspective * mix(1.0, 0.55, lightSparkle);
   sprites[index] = Sprite(ndc, size, alpha, emission, 0.0);
 }

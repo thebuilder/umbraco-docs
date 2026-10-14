@@ -22,6 +22,7 @@ struct Params {
 const LIGHT_TEXT_DIM = 0.8;
 const INK_GAIN = 10.0;
 const INK_DEPTH = 0.5;
+const LIGHT_BLOOM = 0.15;
 
 @group(0) @binding(0) var scene: texture_2d<f32>;
 @group(0) @binding(1) var bloomNear: texture_2d<f32>;
@@ -37,7 +38,9 @@ fn boxMask(uv: vec2f, lo: vec2f, hi: vec2f, feather: f32) -> f32 {
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let base = textureSampleLevel(scene, samp, uv, 0.0).rgb;
   let glow = textureSampleLevel(bloomNear, samp, uv, 0.0).rgb * 0.55 + textureSampleLevel(bloomFar, samp, uv, 0.0).rgb * 0.8;
-  var light = (base + glow * params.bloom) * params.exposure;
+  // Bloom is light spilling around bright particles. As ink on white it would be a smudge, so
+  // light mode keeps only a trace of it.
+  var light = (base + glow * params.bloom * mix(LIGHT_BLOOM, 1.0, params.dark)) * params.exposure;
   // Overlapping hues add up toward lavender; push them back apart so the gradient stays vivid.
   let grey = dot(light, vec3f(0.2126, 0.7152, 0.0722));
   light = max(mix(vec3f(grey), light, 1.35), vec3f(0.0));
