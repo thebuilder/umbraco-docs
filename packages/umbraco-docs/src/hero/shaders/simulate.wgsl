@@ -1,18 +1,27 @@
-// One thread per particle: places it on the mark (flowing along the U stroke), runs the intro
-// swirl, the tilt and the pointer spring, then writes the sprite particles.wgsl draws.
+// One thread per particle: places it on the logo (streaming along the flow, if the logo has one),
+// runs the intro swirl, the tilt and the pointer spring, then writes the sprite particles.wgsl draws.
 //
-// View space is y up from -1 to 1 and x from -aspect to aspect. Mark positions are viewBox units
-// of public/mark.svg, y down.
+// View space is y up from -1 to 1 and x from -aspect to aspect. Logo positions are pixels of the
+// rasterized logo, y down; field.ts builds them.
 
 struct Particle {
-  // home.xy, z, kind (0 stroke, 1 solid, 2 dust)
+  // home.xy, z, kind (0 flow, 1 solid, 2 dust)
   a: vec4f,
-  // progress along the stroke, offset across it, seed, size in px
+  // progress along the flow, offset across it (-1..1), seed, size in px
   b: vec4f,
   // linear color, brightness
   c: vec4f,
   // scattered start (-1..1), phase, sparkle
   d: vec4f,
+}
+
+struct FlowSample {
+  point: vec2f,
+  // Half the stroke's width here, closing to zero at the tips of the caps.
+  half: f32,
+  pad0: f32,
+  color: vec3f,
+  pad1: f32,
 }
 
 struct Sprite {
@@ -24,75 +33,63 @@ struct Sprite {
 }
 
 struct Params {
+  // The logo's solid center, in logo pixels.
+  markCenter: vec2f,
+  // Where that center sits, in view units.
+  markOffset: vec2f,
+  pointer: vec2f,
+  tilt: vec2f,
   aspect: f32,
+  // View units per logo pixel.
   markScale: f32,
-  markOffsetY: f32,
   time: f32,
   dt: f32,
   intro: f32,
+  // Flow lengths per second.
   flow: f32,
   dark: f32,
-  pointer: vec2f,
   pointerActive: f32,
   pixelRatio: f32,
-  tilt: vec2f,
   count: u32,
-  markOffsetX: f32,
+  // 0 when the logo has no flow.
+  flowSamples: u32,
+  pad: f32,
 }
 
 @group(0) @binding(0) var<uniform> params: Params;
 @group(0) @binding(1) var<storage, read> particles: array<Particle>;
-@group(0) @binding(2) var<storage, read_write> motion: array<vec4f>;
-@group(0) @binding(3) var<storage, read_write> sprites: array<Sprite>;
+@group(0) @binding(2) var<storage, read> flowPath: array<FlowSample>;
+@group(0) @binding(3) var<storage, read_write> motion: array<vec4f>;
+@group(0) @binding(4) var<storage, read_write> sprites: array<Sprite>;
 
 const PI = 3.14159265359;
 const TAU = 6.28318530718;
-// The U in mark.svg; field.ts holds the same numbers.
-const LEFT = 60.0;
-const RIGHT = 196.0;
-const TOP = 44.0;
-const BEND = 136.0;
-const CENTER = vec2f(128.0, 124.0);
-const RADIUS = 68.0;
-const BAR = 92.0;
-const ARC = 213.62830;
-const STROKE = 397.62830;
-// The flow runs past both ends into the round caps, which have the stroke's half width as radius.
-const CAP = 18.0;
-const FLOW = 433.62830;
 const CAMERA = 2.6;
 
-// How much of the stroke's width is left at distance `d` along it: all of it, except inside the
-// round caps past either end, where the width closes to a point.
-fn capWidth(d: f32) -> f32 {
-  let beyond = max(-d, d - STROKE) / CAP;
-  return sqrt(max(1.0 - max(beyond, 0.0) * max(beyond, 0.0), 0.0));
+struct FlowPoint {
+  position: vec2f,
+  color: vec3f,
+  // How much of the stroke's full width is left here; less than 1 inside the caps.
+  width: f32,
 }
 
-fn strokePoint(progress: f32, offset: f32) -> vec2f {
-  let d = progress * FLOW - CAP;
-  let across = offset * capWidth(d);
-  if (d < BAR) {
-    return vec2f(LEFT - across, TOP + d);
-  }
-  if (d < BAR + ARC) {
-    let angle = (d - BAR) / RADIUS;
-    return vec2f(128.0, BEND) + (RADIUS + across) * vec2f(-cos(angle), sin(angle));
-  }
-  return vec2f(RIGHT + across, BEND - (d - BAR - ARC));
+fn flowPoint(progress: f32, across: f32) -> FlowPoint {
+  let last = i32(params.flowSamples) - 1;
+  let at = clamp(progress, 0.0, 1.0) * f32(last);
+  let i = min(i32(floor(at)), last);
+  let j = min(i + 1, last);
+  let blend = at - f32(i);
+  let a = flowPath[i];
+  let b = flowPath[j];
+  let tangent = normalize(flowPath[min(i + 1, last)].point - flowPath[max(i - 1, 0)].point + vec2f(1e-6, 0.0));
+  let normal = vec2f(-tangent.y, tangent.x);
+  let half = mix(a.half, b.half, blend);
+  let widest = max(flowPath[last / 2].half, 1e-3);
+  return FlowPoint(mix(a.point, b.point, blend) + normal * across * half, mix(a.color, b.color, blend), half / widest);
 }
 
 fn markToView(point: vec2f) -> vec2f {
-  return (point - CENTER) * vec2f(1.0, -1.0) * params.markScale + vec2f(params.markOffsetX, params.markOffsetY);
-}
-
-// The diagonal gradient of mark.svg across the mark's bounds (x 42 to 214, y 26 to 222), in linear color.
-fn markColor(point: vec2f) -> vec3f {
-  let shade = clamp(((point.x - 42.0) / 172.0 + (point.y - 26.0) / 196.0) * 0.5, 0.0, 1.0);
-  let blue = vec3f(0.1170, 0.3763, 0.9560);
-  let violet = vec3f(0.3278, 0.2270, 0.8388);
-  let pink = vec3f(0.8469, 0.1248, 0.4179);
-  return select(mix(violet, pink, (shade - 0.52) / 0.48), mix(blue, violet, shade / 0.52), shade < 0.52);
+  return (point - params.markCenter) * vec2f(1.0, -1.0) * params.markScale + params.markOffset;
 }
 
 fn rotate(v: vec2f, angle: f32) -> vec2f {
@@ -132,21 +129,23 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
     position = vec3f((particle.d.x * 1.06 + sway) * params.aspect, rise * 1.06, (depth - 0.5) * 1.3);
     alpha = smoothstep(1.06, 0.9, abs(rise)) * smoothstep(0.0, 0.6, params.intro);
   } else {
-    var home: vec2f;
-    if (kind == 0u) {
-      // Stroke particles flow from one tip of the U to the other, squeezing into the round caps
-      // and fading out right at the tips. The squeeze would pile them up there, so they dim with it.
+    var home = particle.a.xy;
+    if (kind == 0u && params.flowSamples > 1u) {
+      // Flow particles stream from one tip of the stroke to the other, squeezing into the round
+      // caps and fading out right at the tips. The squeeze would pile them up, so they dim with it.
       let progress = fract(particle.b.x + t * params.flow);
-      home = strokePoint(progress, particle.b.y);
-      alpha = smoothstep(0.0, 0.012, progress) * (1.0 - smoothstep(0.988, 1.0, progress))
-        * mix(0.55, 1.0, capWidth(progress * FLOW - CAP));
+      let along = flowPoint(progress, particle.b.y);
+      home = along.position;
+      // Color by where the particle is now, so the logo's colors hold while the stroke flows.
+      color = along.color;
+      alpha = smoothstep(0.0, 0.012, progress) * (1.0 - smoothstep(0.988, 1.0, progress)) * mix(0.55, 1.0, along.width);
       // A pulse of light runs along the stroke, twice per loop.
       glow = pow(0.5 + 0.5 * sin((progress - t * 0.06) * TAU * 2.0), 10.0);
     } else {
-      home = particle.a.xy;
+      // Still shapes catch a slow band of light sweeping across the logo instead.
+      let span = 2.4 / max(params.markScale, 1e-4);
+      glow = pow(0.5 + 0.5 * sin(dot(home - params.markCenter, vec2f(0.86, 0.5)) / span * TAU - t * 0.7), 12.0) * 0.9;
     }
-    // Color by where the particle is now, so the gradient holds while the stroke flows.
-    color = markColor(home + vec2f(particle.b.z - 0.5) * 18.0);
     // A little life even at rest.
     home += vec2f(sin(t * 0.63 + phase), cos(t * 0.49 + phase * 1.7)) * 0.9;
     var settled = vec3f(markToView(home), particle.a.z * params.markScale);
@@ -162,7 +161,7 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   }
 
   // Tilt around the mark's center, then project.
-  let pivot = vec3f(params.markOffsetX, params.markOffsetY, 0.0);
+  let pivot = vec3f(params.markOffset, 0.0);
   var p = position - pivot;
   let cy = cos(params.tilt.x);
   let sy = sin(params.tilt.x);

@@ -50,6 +50,39 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 
 Elements that come into view together reveal one after another, 60ms apart. To hold reveals back, for example until a background intro gets going, set `--udocs-reveal-offset` on a container, such as `.udocs-hero__inner { --udocs-reveal-offset: 300ms; }`.
 
+## Particle hero
+
+`HeroParticles` draws the site's logo in glowing WebGPU particles behind the hero text, as on [umbraco.thebuilder.dk](https://umbraco.thebuilder.dk). The particles swirl in from a scattered sky, settle into the logo in its own colors, and scatter around the pointer. Put it in the hero's `background` slot, and leave out the hero's own `logo`, since the particles draw it:
+
+```astro
+---
+import HeroParticles from "@thebuilder/umbraco-docs/components/HeroParticles";
+import { LandingHero } from "@thebuilder/umbraco-docs/astro";
+---
+
+<LandingHero title="Example" description="A focused Umbraco package.">
+  <HeroParticles slot="background" logo="/logo.svg" />
+</LandingHero>
+```
+
+It needs the `vgpu` package, an optional peer dependency, so install it in the site:
+
+```sh
+pnpm add vgpu@^0.6.0
+```
+
+The shaders ship prepared, so the site's build needs no extra setup. Import the component directly as shown; the `./astro` entry doesn't export it, so sites that don't use it never need `vgpu`.
+
+How it behaves:
+
+- **Shape.** The logo is drawn into a 256 pixel square and particles are placed on its solid pixels, taking their colors. Soft glow layers, below 60% coverage, are left out. An SVG logo's `viewBox` decides its shape. A cross-origin logo needs CORS; without it, the fallback below shows instead.
+- **Motion.** Still shapes catch a slow band of light that sweeps across them. To make a stroke stream from one end to the other instead, pass `flow` with its center line as SVG path data, its width and the logo's `viewBox`, such as `flow={{ path: "M60 44v92a68 68 0 0 0 136 0V44", width: 36, viewBox: 256 }}`.
+- **Layout.** It fills the hero down to the first content after the text, such as a `ScreenshotFrame`, and steps back behind the text. When the hero sits under a sticky header, such as Blume's, the particles run on up behind it, and the header starts clear and turns to its usual frosted bar as the page scrolls. Browsers without scroll-driven animations keep the header as it is.
+- **Themes.** It follows `data-theme` on `<html>`, which Blume sets, and the system theme without one: light on dark, colored ink on light.
+- **Fallbacks.** With reduced motion it draws one still frame. Without WebGPU, or if the logo can't be read, the logo shows large and faded instead. It pauses while scrolled out of view.
+
+For a still of the same scene, such as a social card backdrop, `@thebuilder/umbraco-docs/hero` exports `createParticleField` and `createHeroScene`, which also run in Node with `vgpu/node`. The hub renders its card backdrop this way in `apps/hub/scripts/render-og-backdrop.ts`.
+
 ## Related packages
 
 `loadUmbracoPackages()` reads the package list published at [umbraco.thebuilder.dk/packages.json](https://umbraco.thebuilder.dk/packages.json) during the build, so every docs site shows the current set of packages without keeping its own copy. Pass the result to `EcosystemSection`, which leaves out the current package.

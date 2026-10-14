@@ -1,0 +1,75 @@
+---
+// The logo drawn in WebGPU particles behind a LandingHero's text. Put it in the hero's
+// background slot. It needs the optional `vgpu` peer dependency; without WebGPU in the browser,
+// the logo shows large and faded instead.
+import type { HeroFlow } from "@thebuilder/umbraco-docs/hero";
+
+interface Props {
+  /** The logo to draw, usually the same image as the site's logo. */
+  logo: string;
+  /** A stroke of the logo whose particles stream along it instead of holding still. */
+  flow?: HeroFlow;
+}
+
+const { logo, flow } = Astro.props;
+---
+
+<div class="udocs-particles" data-udocs-particles data-logo={logo} data-flow={flow ? JSON.stringify(flow) : undefined} aria-hidden="true">
+  <img class="udocs-particles__fallback" src={logo} alt="" decoding="async" />
+  <canvas class="udocs-particles__canvas"></canvas>
+</div>
+
+<script>
+  import { startHeroParticles } from "@thebuilder/umbraco-docs/hero";
+
+  const started = new WeakSet<HTMLElement>();
+
+  const start = () => {
+    for (const container of document.querySelectorAll<HTMLElement>("[data-udocs-particles]")) {
+      if (started.has(container)) continue;
+      started.add(container);
+      const canvas = container.querySelector("canvas");
+      const hero = container.parentElement;
+      const logo = container.dataset.logo;
+      if (!canvas || !hero || !logo) continue;
+      const text = hero.querySelector<HTMLElement>(".udocs-hero__inner") ?? undefined;
+
+      // Stop above whatever follows the text in the hero, such as a screenshot. A hero near the top
+      // of the page, under a sticky header like Blume's, reaches up behind the header too, so the
+      // particles run on under it instead of ending in a line at its edge.
+      let lift = 0;
+      const fit = () => {
+        let below = text?.nextElementSibling;
+        while (below && ["SCRIPT", "STYLE", "TEMPLATE"].includes(below.tagName)) below = below.nextElementSibling;
+        if (below instanceof HTMLElement) container.style.setProperty("--udocs-particles-height", `${below.offsetTop}px`);
+        else container.style.removeProperty("--udocs-particles-height");
+        const top = hero.getBoundingClientRect().top + window.scrollY;
+        lift = top > 0 && top <= 160 ? Math.round(top) : 0;
+        container.style.setProperty("--udocs-particles-lift", `${lift}px`);
+      };
+      // Anything above the hero can move it too, such as a header changing height or a late banner.
+      const layout = new ResizeObserver(fit);
+      layout.observe(hero);
+      layout.observe(document.body);
+      window.addEventListener("resize", fit);
+      fit();
+
+      const stop = startHeroParticles(canvas, {
+        logo,
+        ...(container.dataset.flow ? { flow: JSON.parse(container.dataset.flow) } : {}),
+        ...(text ? { text } : {}),
+        pointerArea: hero,
+        coveredTop: () => lift,
+        onFallback: () => { container.dataset.fallback = "true"; },
+      });
+      document.addEventListener("astro:before-swap", () => {
+        layout.disconnect();
+        window.removeEventListener("resize", fit);
+        stop();
+      }, { once: true });
+    }
+  };
+
+  start();
+  document.addEventListener("astro:page-load", start);
+</script>

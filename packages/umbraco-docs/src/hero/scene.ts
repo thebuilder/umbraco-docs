@@ -1,21 +1,13 @@
-// The GPU half of the hero, shared by the page (hero.ts) and the Open Graph backdrop
-// (scripts/render-og-backdrop.ts). Each frame runs simulate (compute) → particles (additive points
-// into an HDR target) → bloom (half and quarter resolution) → composite into the output.
-// Shaders come in as arguments: the page imports them through the bundler loader, the script
-// resolves them from disk.
+// The GPU half of the particle hero, shared by the page (browser.ts) and anything that renders it
+// offscreen, such as an Open Graph backdrop. Each frame runs simulate (compute) → particles
+// (additive points into an HDR target) → bloom (half and quarter resolution) → composite into the
+// output. The shaders ship prepared, so this needs no WGSL loader.
 
 import { compute, draw, effect, sampler, storage, target } from "vgpu";
-import type { Frame, Gpu, ShaderSource, Target } from "vgpu";
+import type { Frame, Gpu, Target } from "vgpu";
 
-import { generateField, MARK_HEIGHT, SPRITE_FLOATS } from "./field.ts";
-
-export interface HeroShaders {
-  readonly simulate: ShaderSource;
-  readonly particles: ShaderSource;
-  readonly bright: ShaderSource;
-  readonly blur: ShaderSource;
-  readonly composite: ShaderSource;
-}
+import { SPRITE_FLOATS, type ParticleField } from "./field.js";
+import * as shaders from "./shaders.generated.js";
 
 /** Per-frame inputs of simulate.wgsl. Pointer and tilt are in view space: y up, x scaled by aspect. */
 export interface HeroMotion {
@@ -43,17 +35,21 @@ export interface HeroLayout {
   offset: [number, number];
 }
 
+/** The page hero's layout: the mark fills most of the height, centered. */
+export const CENTERED: HeroLayout = { height: 0.84, offset: [0, -0.02] };
+
 const HDR = "rgba16float" as const;
 const CLEAR = [0, 0, 0, 0] as const;
 const WORKGROUP = 64;
 
 export type HeroScene = ReturnType<typeof createHeroScene>;
 
-/** `output` is the canvas surface on the page, or an offscreen target for the backdrop. */
-export function createHeroScene(gpu: Gpu, output: Target, shaders: HeroShaders, layout: HeroLayout) {
-  const field = generateField();
+/** `output` is a canvas surface, or an offscreen target for a still. */
+export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, layout: HeroLayout = CENTERED) {
   const particles = storage(gpu, field.particles.byteLength, "read");
   particles.write(field.particles);
+  const flowPath = storage(gpu, field.flow.byteLength, "read");
+  flowPath.write(field.flow);
   const motion = storage(gpu, field.count * 16, "read-write");
   motion.write(new Float32Array(field.count * 4));
   const sprites = storage(gpu, field.count * SPRITE_FLOATS * 4, "read-write");
@@ -71,11 +67,13 @@ export function createHeroScene(gpu: Gpu, output: Target, shaders: HeroShaders, 
     label: "hero-simulate",
     set: {
       particles,
+      flowPath,
       motion,
       sprites,
       params: {
-        aspect: 1, markScale: 1, markOffsetY: 0, time: 0, dt: 0, intro: 1, flow: 0.012, dark: 1,
-        pointer: [0, 0], pointerActive: 0, pixelRatio: 1, tilt: [0, 0], count: field.count, markOffsetX: 0,
+        markCenter: field.center, markOffset: layout.offset, pointer: [0, 0], tilt: [0, 0],
+        aspect: 1, markScale: 1, time: 0, dt: 0, intro: 1, flow: 0.012, dark: 1, pointerActive: 0,
+        pixelRatio: 1, count: field.count, flowSamples: field.flowSamples, pad: 0,
       },
     },
   });
@@ -109,6 +107,11 @@ export function createHeroScene(gpu: Gpu, output: Target, shaders: HeroShaders, 
   });
 
   let aspect = 1;
+  // The mark keeps its share of the height, narrowed on portrait screens so it still fits.
+  const fit = () => {
+    const markScale = Math.min((2 * layout.height) / field.size[1], (aspect * 1.75) / field.size[0]);
+    simulate.set({ params: { aspect, markScale, markOffset: layout.offset } });
+  };
 
   return {
     get aspect() {
@@ -122,14 +125,18 @@ export function createHeroScene(gpu: Gpu, output: Target, shaders: HeroShaders, 
       scene.resize([width, height]);
       for (const half of near) half.resize(scaled(2));
       for (const quarter of far) quarter.resize(scaled(4));
-      // The mark keeps its share of the height, narrowed on portrait screens so it still fits.
-      const markScale = Math.min((2 * layout.height) / MARK_HEIGHT, (aspect * 1.75) / 172);
-      const [markOffsetX, markOffsetY] = layout.offset;
-      simulate.set({ params: { aspect, markScale, markOffsetX, markOffsetY, pixelRatio } });
+      simulate.set({ params: { pixelRatio } });
+      fit();
       points.set({ view: { resolution: [width, height] } });
       bright.set({ src: scene });
       for (const pass of blurs) pass.effect.set({ src: pass.src, blur: { texel: pass.src.texelSize } });
       composite.set({ scene, bloomNear: near[0], bloomFar: far[1] });
+    },
+
+    /** Moves or resizes the mark within the output. */
+    place(next: HeroLayout) {
+      layout = next;
+      fit();
     },
 
     /** Builds every pipeline up front, so the first frame does not hitch. */

@@ -26,9 +26,6 @@ importers:
       '@astrojs/check':
         specifier: 0.9.10
         version: 0.9.10(prettier@3.9.6)(typescript@5.9.3)
-      '@vgpu/wgsl':
-        specifier: 0.6.0
-        version: 0.6.0(@vgpu/adapter-node@0.6.0)
       sharp:
         specifier: 0.35.3
         version: 0.35.3(@types/node@24.13.3)
@@ -48,12 +45,18 @@ importers:
       '@types/node':
         specifier: ^24.10.1
         version: 24.13.3
+      '@vgpu/wgsl':
+        specifier: 0.6.0
+        version: 0.6.0(@vgpu/adapter-node@0.6.0)
       blume:
         specifier: 2.2.3
         version: 2.2.3(@asyncapi/converter@2.0.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@shikijs/themes@4.4.3)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(babel-plugin-react-compiler@1.0.0)(csstype@3.2.3)(esbuild@0.28.2)(rollup@4.62.4)(vite@8.3.4(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))(yaml@2.9.1)
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
+      vgpu:
+        specifier: 0.6.0
+        version: 0.6.0
 
 packages:
 
