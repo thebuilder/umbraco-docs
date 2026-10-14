@@ -16,6 +16,13 @@ struct Params {
   fade: f32,
 }
 
+// Light mode lays particles down as ink on white. Strong enough that the logo reads clearly, and
+// dimmed a little less behind the text than dark mode: measured with the API OIDC logo, the hero's
+// description keeps 5.4:1 even over the darkest 1% of the ink behind it.
+const LIGHT_TEXT_DIM = 0.8;
+const INK_GAIN = 10.0;
+const INK_DEPTH = 0.5;
+
 @group(0) @binding(0) var scene: texture_2d<f32>;
 @group(0) @binding(1) var bloomNear: texture_2d<f32>;
 @group(0) @binding(2) var bloomFar: texture_2d<f32>;
@@ -35,7 +42,9 @@ fn boxMask(uv: vec2f, lo: vec2f, hi: vec2f, feather: f32) -> f32 {
   let grey = dot(light, vec3f(0.2126, 0.7152, 0.0722));
   light = max(mix(vec3f(grey), light, 1.35), vec3f(0.0));
 
-  let mask = (1.0 - params.textDim * boxMask(uv, params.textMin, params.textMax, 0.06))
+  // Light mode dims less behind the text: its dark text keeps its contrast over the pale ink.
+  let dim = params.textDim * mix(LIGHT_TEXT_DIM, 1.0, params.dark);
+  let mask = (1.0 - dim * boxMask(uv, params.textMin, params.textMax, 0.06))
     * (1.0 - params.fade * smoothstep(0.72, 1.0, uv.y));
 
   // Dark: light over the page. A per-channel exponential keeps the brand hues saturated where a
@@ -46,9 +55,9 @@ fn boxMask(uv: vec2f, lo: vec2f, hi: vec2f, feather: f32) -> f32 {
 
   // Light: ink of the same hue, deepened so it holds up on white.
   let level = max(light.r, max(light.g, light.b));
-  let inkAlpha = 1.0 - exp(-level * 3.2);
+  let inkAlpha = 1.0 - exp(-level * INK_GAIN);
   let hue = pow(light / max(level, 1e-4), vec3f(1.4));
-  let ink = linearToSrgb3(hue * 0.55);
+  let ink = linearToSrgb3(hue * INK_DEPTH);
   let onLight = vec4f(ink * inkAlpha, inkAlpha);
 
   return mix(onLight, onDark, params.dark) * mask;
