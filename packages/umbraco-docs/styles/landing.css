@@ -19,8 +19,9 @@
   .udocs-hero__glow { position: absolute; inset: -30% -10% auto; height: min(40rem, 130%); background: radial-gradient(ellipse at top, color-mix(in oklab, var(--udocs-accent) 24%, transparent), transparent 70%); pointer-events: none; }
   /* The particle hero (HeroParticles) sits behind the text, down to where the hero's content below the text begins. */
   .udocs-particles { position: absolute; inset: calc(-1 * var(--udocs-particles-lift, 0px)) 0 auto; height: calc(var(--udocs-particles-height, 100%) + var(--udocs-particles-lift, 0px)); pointer-events: none; }
-  /* Let the particles reach up behind a header, and no further: content above the header stays clear. */
-  .udocs-hero:has(> .udocs-particles) { overflow: visible; clip-path: inset(calc(-1 * var(--udocs-particles-lift, 0px)) 0 0); }
+  /* Let the particles reach up behind a header, and no further: content above the header stays clear.
+     clip-path only hides what spills over, so the sides still clip to keep the glow from widening the page. */
+  .udocs-hero:has(> .udocs-particles) { overflow: visible; overflow-x: clip; clip-path: inset(calc(-1 * var(--udocs-particles-lift, 0px)) 0 0); }
   .udocs-particles__canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 600ms ease; }
   .udocs-particles__canvas[data-ready] { opacity: 1; }
   /* Only when the particles can't run: the logo itself, large and faded where they would form. */
