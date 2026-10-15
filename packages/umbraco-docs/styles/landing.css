@@ -74,6 +74,14 @@
     .udocs-hero[data-layout="split"] .udocs-hero__actions { justify-content: center; }
     .udocs-hero__art { order: -1; min-height: 0; height: clamp(9rem, 36vw, 15rem); }
   }
+  /* On phones the action buttons share the full width of the text column, in equal parts, and the
+     install command spans the same width below them, so every site lines up the same way whatever
+     its button labels. Buttons too wide to share a row wrap, each onto its own full-width row. */
+  @media (width <= 36rem) {
+    .udocs-hero__copy > :is(.udocs-hero__actions, .udocs-install) { align-self: stretch; }
+    .udocs-hero__actions > * { flex: 1 1 0; }
+    .udocs-hero__copy > .udocs-install code { flex: 1; text-align: start; }
+  }
   .udocs-install { display: inline-flex; align-items: center; max-width: 100%; gap: 0.75rem; padding: 0.55rem 0.6rem 0.55rem 1rem; border: 1px solid var(--udocs-border); border-radius: var(--udocs-radius); background: var(--blume-code-background, var(--udocs-muted)); font-family: var(--blume-font-mono, monospace); font-size: 0.9rem; }
   .udocs-install > span { color: var(--udocs-muted-foreground); user-select: none; }
   .udocs-install code { overflow-x: auto; color: var(--udocs-foreground); white-space: nowrap; }
