@@ -42,6 +42,11 @@ export interface HeroLayout {
 /** The page hero's layout: the mark fills most of the height, centered. */
 export const CENTERED: HeroLayout = { height: 0.84, offset: [0, -0.02] };
 
+// Screen pixels per logo pixel at which the logo draws all its particles. A smaller logo draws
+// fewer, in proportion to its area, down to MIN_KEEP, so it keeps the same density on screen.
+const FULL_DENSITY_PIXELS = 2;
+const MIN_KEEP = 0.15;
+
 const HDR = "rgba16float" as const;
 const CLEAR = [0, 0, 0, 0] as const;
 const WORKGROUP = 64;
@@ -77,7 +82,7 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
       params: {
         markCenter: field.center, markOffset: layout.offset, pointer: [0, 0], tilt: [0, 0],
         aspect: 1, markScale: 1, time: 0, dt: 0, intro: 1, flow: 0.012, dark: 1, pointerActive: 0,
-        pixelRatio: 1, count: field.count, flowSamples: field.flowSamples, pad: 0,
+        pixelRatio: 1, count: field.count, flowSamples: field.flowSamples, keep: 1,
       },
     },
   });
@@ -113,10 +118,13 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
   });
 
   let aspect = 1;
+  let pixelRatio = 1;
   // The mark keeps its share of the height, narrowed on portrait screens so it still fits.
   const fit = () => {
     const markScale = Math.min((2 * layout.height) / field.size[1], (2 * aspect * (layout.width ?? 0.875)) / field.size[0]);
-    simulate.set({ params: { aspect, markScale, markOffset: layout.offset } });
+    const pixels = (markScale * output.size[1]) / 2 / pixelRatio;
+    const keep = Math.min(1, Math.max(MIN_KEEP, (pixels / FULL_DENSITY_PIXELS) ** 2));
+    simulate.set({ params: { aspect, markScale, markOffset: layout.offset, keep } });
   };
 
   return {
@@ -125,7 +133,8 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
     },
 
     /** Matches the internal targets to the output; call after the output changes size. */
-    resize(pixelRatio: number) {
+    resize(ratio: number) {
+      pixelRatio = ratio;
       const [width, height] = output.size;
       aspect = width / Math.max(height, 1);
       scene.resize([width, height]);

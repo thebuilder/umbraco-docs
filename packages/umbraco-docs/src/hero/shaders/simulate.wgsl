@@ -53,7 +53,8 @@ struct Params {
   count: u32,
   // 0 when the logo has no flow.
   flowSamples: u32,
-  pad: f32,
+  // The share of the logo's particles drawn, less than 1 when the logo is small on screen.
+  keep: f32,
 }
 
 @group(0) @binding(0) var<uniform> params: Params;
@@ -111,6 +112,12 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   }
   let particle = particles[index];
   let kind = u32(particle.a.w);
+  // A small logo draws only some of its particles, picked evenly by index, so it stays as airy as
+  // a large one instead of packing into a solid glow. The dust fills the screen, so it all stays.
+  if (kind != 2u && fract(f32(index) * 0.618034) >= params.keep) {
+    sprites[index] = Sprite(vec2f(0.0), 0.0, 0.0, vec3f(0.0), 0.0);
+    return;
+  }
   let seed = particle.b.z;
   let phase = particle.d.z;
   let sparkle = particle.d.w;
