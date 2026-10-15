@@ -52,6 +52,8 @@ export const packages = [
     summary: "Let editors change the text in your application from the Umbraco backoffice, without a code change or a deploy.",
     links: {
       docs: "https://app-translations.thebuilder.dk/",
+      nuget: "https://www.nuget.org/packages/TheBuilder.AppTranslations",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.apptranslations",
       github: "https://github.com/thebuilder/umbraco-app-translations",
     },
     logo: "/logos/app-translations.svg",
