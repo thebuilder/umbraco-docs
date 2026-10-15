@@ -48,7 +48,7 @@ import { InstallCommand, LandingHero, LandingRoot } from "@thebuilder/umbraco-do
 
 `logo`, `eyebrow` (a short line above the title) and `description` are optional. A hero can also draw its own background, such as a canvas, through the `background` slot, which renders behind the glow and the content.
 
-`layout="split"` puts the text on the left, left-aligned, and the logo large on the right, as on the social cards. Below 56rem the logo sits above the text, smaller, with the text centered under it. The default, `centered`, stacks a small logo and the text in the middle. Give a split hero a `logo` or a `HeroParticles` background to fill that column. Content in the default slot, such as a `ScreenshotFrame`, goes below either layout at full width.
+`layout="split"` puts the text on the left, left-aligned, and the logo large on the right, as on the social cards. Below 56rem the logo sits above the text, smaller, with the text centered under it. Below 36rem, in either layout, the action buttons share the full width of the text in equal parts and the install command spans the same width, so every site's hero lines up the same way on a phone. The default, `centered`, stacks a small logo and the text in the middle. Give a split hero a `logo` or a `HeroParticles` background to fill that column. Content in the default slot, such as a `ScreenshotFrame`, goes below either layout at full width.
 
 Elements that come into view together reveal one after another, 60ms apart. To hold reveals back, for example until a background intro gets going, set `--udocs-reveal-offset` on a container, such as `.udocs-hero__inner { --udocs-reveal-offset: 300ms; }`.
 
