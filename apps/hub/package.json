@@ -10,6 +10,7 @@
     "og:backdrop": "pnpm --filter @thebuilder/umbraco-docs build && node scripts/render-og-backdrop.ts"
   },
   "dependencies": {
+    "@astrojs/vercel": "^11.0.15",
     "@thebuilder/umbraco-docs": "workspace:*",
     "@vercel/analytics": "2.0.1",
     "astro": "7.3.8",
