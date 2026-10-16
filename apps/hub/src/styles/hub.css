@@ -8,10 +8,6 @@
   --hub-border: oklch(88% 0.006 260 / 0.72);
   /* The docs family's shared accent, DOCS_ACCENT in @thebuilder/umbraco-docs. */
   --hub-accent: #7557e8;
-  --hub-status-stable: #15803d;
-  --hub-status-preview: #7c3aed;
-  --hub-status-maintenance: #b45309;
-  --hub-status-deprecated: #b91c1c;
 }
 
 /* Dark follows the system unless the theme toggle pinned a choice in data-theme. */
@@ -24,10 +20,6 @@
     --hub-muted-foreground: oklch(68% 0 0);
     --hub-border: oklch(24% 0 0 / 0.8);
     --hub-accent: #a78bfa;
-    --hub-status-stable: #4ade80;
-    --hub-status-preview: #c4b5fd;
-    --hub-status-maintenance: #fbbf24;
-    --hub-status-deprecated: #f87171;
   }
 }
 
@@ -39,10 +31,6 @@
   --hub-muted-foreground: oklch(68% 0 0);
   --hub-border: oklch(24% 0 0 / 0.8);
   --hub-accent: #a78bfa;
-  --hub-status-stable: #4ade80;
-  --hub-status-preview: #c4b5fd;
-  --hub-status-maintenance: #fbbf24;
-  --hub-status-deprecated: #f87171;
 }
 
 /* The shared landing styles read their tokens from the root they render in. */
@@ -113,11 +101,6 @@ img { max-width: 100%; }
 .hub-package__links a { color: var(--udocs-accent); font-weight: 600; text-decoration: none; }
 .hub-package__links a:hover { text-decoration: underline; }
 
-.hub-status { padding: 0.1rem 0.5rem; border: 1px solid currentColor; border-radius: 999px; font-size: 0.75rem; font-weight: 650; line-height: 1.4; }
-.hub-status--stable { color: var(--hub-status-stable); }
-.hub-status--preview { color: var(--hub-status-preview); }
-.hub-status--maintenance { color: var(--hub-status-maintenance); }
-.hub-status--deprecated { color: var(--hub-status-deprecated); }
 
 .hub-footer { border-top: 1px solid var(--hub-border); color: var(--hub-muted-foreground); font-size: 0.875rem; }
 .hub-footer p { margin: 0; padding-block: 2rem; }

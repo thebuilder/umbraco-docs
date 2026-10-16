@@ -1,12 +1,5 @@
 import type { UmbracoPackage } from "@thebuilder/umbraco-docs";
 
-export const statusLabels: Record<UmbracoPackage["status"], string> = {
-  preview: "Preview",
-  stable: "Stable",
-  maintenance: "Maintenance",
-  deprecated: "Deprecated",
-};
-
 // Turns ">=17.1 <19" into "Umbraco 17.1 to 18.x", ">=17.5 <18" into
 // "Umbraco 17 (from 17.5)" and ">=17.5" into "Umbraco 17.5 or later";
 // anything else is shown as written.

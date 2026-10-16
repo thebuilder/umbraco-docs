@@ -6,7 +6,7 @@ import LandingRoot from "@thebuilder/umbraco-docs/components/LandingRoot";
 import SectionHeading from "@thebuilder/umbraco-docs/components/SectionHeading";
 
 import Layout from "../layouts/Layout.astro";
-import { docsLabel, formatUmbraco, statusLabels } from "../format.ts";
+import { docsLabel, formatUmbraco } from "../format.ts";
 import { packages } from "../packages.ts";
 import { markFlow, tagline } from "../site.ts";
 
@@ -36,7 +36,7 @@ const profileUrl = "https://github.com/thebuilder";
     </LandingHero>
 
     <section id="packages" class="udocs-shell hub-packages" aria-labelledby="packages-title">
-      <SectionHeading id="packages-title" title="Packages" description={`${packages.length} packages, from stable releases to early previews.`} />
+      <SectionHeading id="packages-title" title="Packages" />
       <ul class="hub-packages__list" role="list">
         {packages.map((item) => (
           <li data-udocs-reveal>
@@ -46,7 +46,6 @@ const profileUrl = "https://github.com/thebuilder";
                 <div>
                   <h3><a class="hub-package__link" href={item.links.docs}>{item.name}</a></h3>
                   <p class="hub-package__meta">
-                    <span class:list={["hub-status", `hub-status--${item.status}`]}>{statusLabels[item.status]}</span>
                     <span>{formatUmbraco(item.compatibility.umbraco)}</span>
                   </p>
                 </div>
