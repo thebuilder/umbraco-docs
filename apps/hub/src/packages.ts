@@ -6,7 +6,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "thebuilder.blurplaceholder",
     name: "Blur Placeholder",
-    summary: "Generate WebP, BlurHash, or ThumbHash placeholders for Umbraco Image media and deliver one frontend-ready string.",
+    summary: "Generates a WebP, BlurHash or ThumbHash placeholder when an image is saved, ready for your frontend to show while the image loads.",
     links: {
       docs: "https://blur.thebuilder.dk/",
       nuget: "https://www.nuget.org/packages/TheBuilder.BlurPlaceholder",
@@ -21,7 +21,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "thebuilder.webanalytics",
     name: "Web Analytics",
-    summary: "Connect analytics providers and bring site-wide and page-level insights into the Umbraco backoffice.",
+    summary: "Shows the traffic from Vercel Web Analytics or Plausible in the Umbraco backoffice, for the whole site and for each page.",
     links: {
       docs: "https://web-analytics.thebuilder.dk/",
       nuget: "https://www.nuget.org/packages/TheBuilder.WebAnalytics",
@@ -36,7 +36,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "thebuilder.aiimagedisclosure",
     name: "AI Image Disclosure",
-    summary: "Check Umbraco images for signed C2PA claims of AI use. An OpenAI watermark check is optional.",
+    summary: "Reads the C2PA Content Credentials on uploaded images and flags the ones that say they were made or edited with AI.",
     links: {
       docs: "https://ai-image-disclosure.thebuilder.dk/",
       github: "https://github.com/thebuilder/umbraco-ai-image-disclosure",
@@ -49,7 +49,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "thebuilder.apptranslations",
     name: "App Translations",
-    summary: "Let editors change the text in your application from the Umbraco backoffice, without a code change or a deploy.",
+    summary: "Lets editors change the next-intl or i18next messages in your app from Umbraco. Your app fetches the changes when it runs.",
     links: {
       docs: "https://app-translations.thebuilder.dk/",
       nuget: "https://www.nuget.org/packages/TheBuilder.AppTranslations",
@@ -64,7 +64,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "thebuilder.apioidc",
     name: "API OIDC",
-    summary: "Let frontends call the Umbraco Delivery API and your own API endpoints with the OIDC token their platform already issues, instead of a shared API key.",
+    summary: "Lets frontends call the Delivery API and your own endpoints with an OIDC token from their hosting platform, instead of a shared API key.",
     links: {
       docs: "https://api-oidc.thebuilder.dk/",
       nuget: "https://www.nuget.org/packages/TheBuilder.ApiOidc",
@@ -79,7 +79,7 @@ export const packages = [
   defineUmbracoPackage({
     id: "charlietango.umbracorichtext",
     name: "Umbraco Rich Text",
-    summary: "Render the JSON rich text output from the Umbraco Content Delivery API with React, with full control over blocks and nodes.",
+    summary: "Renders the rich text JSON from the Umbraco Content Delivery API with React. You decide how each block and node is rendered.",
     links: {
       docs: "https://github.com/charlie-tango/umbraco-rich-text#readme",
       npm: "https://www.npmjs.com/package/@charlietango/umbraco-rich-text",
