@@ -77,6 +77,20 @@ export const packages = [
     categories: ["Headless", "Developer Tools"],
   }),
   defineUmbracoPackage({
+    id: "thebuilder.schemacity",
+    name: "Schema City",
+    summary: "Shows your Document Types as a city in the backoffice, with the links between them, and flags schema problems before they ship.",
+    links: {
+      docs: "https://github.com/thebuilder/umbraco-schema-city/blob/main/docs/guide.md",
+      nuget: "https://www.nuget.org/packages/TheBuilder.SchemaCity",
+      github: "https://github.com/thebuilder/umbraco-schema-city",
+    },
+    logo: "/logos/schema-city.svg",
+    compatibility: { umbraco: ">=17 <19", dotnet: ">=10" },
+    status: "preview",
+    categories: ["Developer Tools", "Editor Tools"],
+  }),
+  defineUmbracoPackage({
     id: "charlietango.umbracorichtext",
     name: "Umbraco Rich Text",
     summary: "Renders the rich text JSON from the Umbraco Content Delivery API with React. You decide how each block and node is rendered.",

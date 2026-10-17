@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true">
+  <!-- Document Types as buildings and property groups as floors, in the family's blue, violet and pink. -->
+  <rect x="16" y="112" width="64" height="128" rx="14" fill="#60a5fa"/>
+  <rect x="96" y="36" width="64" height="204" rx="14" fill="#9b83ec"/>
+  <rect x="176" y="84" width="64" height="156" rx="14" fill="#ed63ad"/>
+  <g fill="#fff" fill-opacity=".85">
+    <rect x="34" y="146" width="28" height="10" rx="5"/>
+    <rect x="34" y="174" width="28" height="10" rx="5"/>
+    <rect x="114" y="70" width="28" height="10" rx="5"/>
+    <rect x="114" y="98" width="28" height="10" rx="5"/>
+    <rect x="114" y="126" width="28" height="10" rx="5"/>
+    <rect x="194" y="118" width="28" height="10" rx="5"/>
+    <rect x="194" y="146" width="28" height="10" rx="5"/>
+  </g>
+</svg>
