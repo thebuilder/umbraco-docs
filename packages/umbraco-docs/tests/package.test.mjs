@@ -61,3 +61,11 @@ test("landing component styles can override unlayered host resets", async () => 
   assert.doesNotMatch(css, /@layer\s+udocs\.components/);
   assert.match(css, /^\.udocs-shell\s*\{/m);
 });
+
+test("diagram styles only reach rendered Mermaid diagrams", async () => {
+  const css = await readFile(new URL("../styles/diagrams.css", import.meta.url), "utf8");
+  const selectors = css.replace(/\/\*[\s\S]*?\*\//g, "").match(/[^{}]+(?=\{)/g).flatMap((list) => list.split(","));
+
+  assert.ok(selectors.length > 0);
+  for (const selector of selectors) assert.match(selector.trim(), /^blume-mermaid svg\b/);
+});

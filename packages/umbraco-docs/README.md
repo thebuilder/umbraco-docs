@@ -67,6 +67,16 @@ export default defineConfig({
 
 The accent has a shade per color mode, `#7557e8` in light and `#a78bfa` in dark, and each meets WCAG AA as link text and with its button label, which Blume picks: white in light, dark in dark. It needs Blume 2. `DOCS_ACCENT` exports the two shades for other uses, such as the hub's own CSS.
 
+## Diagrams
+
+Blume turns a ` ```mermaid ` fence in an `.mdx` page into a [Mermaid](https://mermaid.js.org) diagram, and only loads Mermaid on pages that have one. Out of the box it uses Mermaid's own lavender and yellow. `styles/diagrams.css` repaints diagrams from the site's Blume tokens instead, so boxes take the family accent, notes and frames use the muted surface, and the text uses the body font, in both color modes. Import it at the top of the site's `theme.css`:
+
+```css
+@import "@thebuilder/umbraco-docs/styles/diagrams.css";
+```
+
+Use a diagram where a page explains a flow or a choice that's hard to follow in prose, such as a request passing through several parts, and keep it next to the text it illustrates, not instead of it. Sequence diagrams and flowcharts fit the 48rem column best; keep labels short so they stay readable without scrolling sideways.
+
 ## Particle hero
 
 `HeroParticles` draws the site's logo in glowing WebGPU particles, as on [umbraco.thebuilder.dk](https://umbraco.thebuilder.dk). The particles swirl in from a scattered sky, settle into the logo in its own colors, and scatter around the pointer. Put it in the hero's `background` slot. Package docs sites use the split layout, so the logo forms beside the text instead of behind it:

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 function run(args) {
   return new Promise((resolve, reject) => {
@@ -25,6 +25,11 @@ for (const directory of directories) {
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
   if (directory.endsWith("2.2.3")) {
     assert.match(html, /data-udocs-particles/);
+    // The shared diagram style reaches the site's stylesheet through its theme.css import.
+    const assets = `${directory}/.blume-verify/dist/_astro`;
+    const sheets = (await readdir(assets)).filter((file) => file.endsWith(".css"));
+    const css = (await Promise.all(sheets.map((file) => readFile(`${assets}/${file}`, "utf8")))).join("");
+    assert.match(css, /--udocs-diagram-fill/);
     assert.match(html, /class="udocs-hero__eyebrow"[^>]*>Shared docs fixture</);
   }
   else assert.doesNotMatch(html, /data-udocs-particles/);
