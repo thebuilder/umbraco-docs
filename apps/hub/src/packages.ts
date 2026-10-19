@@ -81,7 +81,7 @@ export const packages = [
     name: "Schema City",
     summary: "Shows your Document Types as a city in the backoffice, with the links between them, and flags schema problems before they ship.",
     links: {
-      docs: "https://github.com/thebuilder/umbraco-schema-city/blob/main/docs/guide.md",
+      docs: "https://schema-city.thebuilder.dk/",
       nuget: "https://www.nuget.org/packages/TheBuilder.SchemaCity",
       marketplace: "https://marketplace.umbraco.com/package/thebuilder.schemacity",
       github: "https://github.com/thebuilder/umbraco-schema-city",
