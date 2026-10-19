@@ -1,0 +1,108 @@
+/*
+ * Mermaid diagrams in the docs family's colors. Blume renders ```mermaid fences with Mermaid's
+ * stock "default" and "dark" themes, which bring their own lavender and yellow. These rules repaint
+ * the rendered SVG from Blume's tokens instead, so a diagram follows the site's accent, surfaces and
+ * fonts in both color modes. Mermaid scopes its own styles to the diagram's id, hence !important.
+ */
+blume-mermaid svg {
+  --udocs-diagram-fill: color-mix(in oklab, var(--blume-accent) 9%, var(--blume-background));
+  --udocs-diagram-stroke: color-mix(in oklab, var(--blume-accent) 55%, var(--blume-background));
+  --udocs-diagram-line: var(--blume-muted-foreground);
+  --udocs-diagram-text: var(--blume-foreground);
+  font-family: var(--blume-font-body) !important;
+}
+
+blume-mermaid svg text,
+blume-mermaid svg tspan,
+blume-mermaid svg .nodeLabel,
+blume-mermaid svg .edgeLabel,
+blume-mermaid svg foreignObject div,
+blume-mermaid svg foreignObject span,
+blume-mermaid svg foreignObject p {
+  font-family: var(--blume-font-body) !important;
+  color: var(--udocs-diagram-text) !important;
+  fill: var(--udocs-diagram-text) !important;
+}
+
+/* Boxes: sequence participants, flowchart nodes, state and class boxes. */
+blume-mermaid svg rect.actor,
+blume-mermaid svg .node rect,
+blume-mermaid svg .node circle,
+blume-mermaid svg .node ellipse,
+blume-mermaid svg .node polygon,
+blume-mermaid svg .node path,
+blume-mermaid svg .basic.label-container {
+  fill: var(--udocs-diagram-fill) !important;
+  stroke: var(--udocs-diagram-stroke) !important;
+  stroke-width: 1px !important;
+}
+
+blume-mermaid svg rect.actor {
+  rx: 6px;
+  ry: 6px;
+}
+
+/* Lines and arrows. */
+blume-mermaid svg .actor-line {
+  stroke: var(--blume-border) !important;
+}
+
+blume-mermaid svg .messageLine0,
+blume-mermaid svg .messageLine1,
+blume-mermaid svg .flowchart-link,
+blume-mermaid svg .edgePath .path,
+blume-mermaid svg .relation,
+blume-mermaid svg .transition {
+  stroke: var(--udocs-diagram-line) !important;
+}
+
+blume-mermaid svg marker path,
+blume-mermaid svg .arrowheadPath,
+blume-mermaid svg .arrowMarkerPath,
+blume-mermaid svg #arrowhead path {
+  fill: var(--udocs-diagram-line) !important;
+  stroke: var(--udocs-diagram-line) !important;
+}
+
+/* Edge labels sit on the page, not on a colored chip. */
+blume-mermaid svg .edgeLabel,
+blume-mermaid svg .edgeLabel rect,
+blume-mermaid svg .edgeLabel p,
+blume-mermaid svg .labelBkg {
+  background-color: var(--blume-background) !important;
+  fill: var(--blume-background) !important;
+}
+
+/* Notes: the muted surface instead of a yellow sticky. */
+blume-mermaid svg .note {
+  fill: var(--blume-muted) !important;
+  stroke: var(--blume-border) !important;
+}
+
+/* alt, opt and loop frames: a quiet dashed outline with the accent on the label tab. */
+blume-mermaid svg .loopLine {
+  stroke: var(--blume-border) !important;
+}
+
+blume-mermaid svg .labelBox {
+  fill: var(--udocs-diagram-fill) !important;
+  stroke: var(--udocs-diagram-stroke) !important;
+}
+
+blume-mermaid svg .loopText,
+blume-mermaid svg .loopText tspan,
+blume-mermaid svg .labelText,
+blume-mermaid svg .labelText tspan,
+blume-mermaid svg .edgeLabel *,
+blume-mermaid svg .noteText,
+blume-mermaid svg .noteText tspan {
+  fill: var(--blume-muted-foreground) !important;
+  color: var(--blume-muted-foreground) !important;
+}
+
+/* Flowchart subgraphs. */
+blume-mermaid svg .cluster rect {
+  fill: transparent !important;
+  stroke: var(--blume-border) !important;
+  stroke-dasharray: 4 3;
+}
