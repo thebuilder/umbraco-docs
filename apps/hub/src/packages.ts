@@ -39,10 +39,12 @@ export const packages = [
     summary: "Reads the C2PA Content Credentials on uploaded images and flags the ones that say they were made or edited with AI.",
     links: {
       docs: "https://ai-image-disclosure.thebuilder.dk/",
+      nuget: "https://www.nuget.org/packages/TheBuilder.AIImageDisclosure",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.aiimagedisclosure",
       github: "https://github.com/thebuilder/umbraco-ai-image-disclosure",
     },
     logo: "/logos/ai-image-disclosure.svg",
-    compatibility: { umbraco: ">=17.1 <19", dotnet: ">=10" },
+    compatibility: { umbraco: ">=17.3 <19", dotnet: ">=10" },
     status: "preview",
     categories: ["Artificial Intelligence", "Editor Tools"],
   }),
