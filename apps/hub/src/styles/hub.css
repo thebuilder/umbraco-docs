@@ -101,6 +101,30 @@ img { max-width: 100%; }
 .hub-package__links a { color: var(--udocs-accent); font-weight: 600; text-decoration: none; }
 .hub-package__links a:hover { text-decoration: underline; }
 
+/* A short note from the maintainer, in the same 48rem column as the docs prose. */
+.hub-about { margin-block: 0 clamp(4rem, 9vw, 7rem); }
+.hub-about__card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1.25rem, 4vw, 2rem);
+  max-width: 48rem;
+  margin-inline: auto;
+  padding: clamp(1.4rem, 4vw, 2rem);
+  border: 1px solid var(--udocs-border);
+  border-radius: calc(var(--udocs-radius) * 1.4);
+  background: color-mix(in oklab, var(--udocs-muted) 38%, transparent);
+}
+.hub-about__photo { width: clamp(4.5rem, 14vw, 7rem); height: auto; aspect-ratio: 1; border-radius: 999px; object-fit: cover; }
+.hub-about h2 { margin: 0 0 0.75rem; font-family: var(--blume-font-display, system-ui); font-size: clamp(1.35rem, 2.6vw, 1.6rem); font-weight: 750; line-height: 1.2; letter-spacing: -0.01em; }
+.hub-about p { margin: 0 0 0.85rem; color: var(--udocs-muted-foreground); line-height: 1.65; }
+.hub-about__links { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin: 1.1rem 0 0; padding: 0.9rem 0 0; border-top: 1px solid var(--udocs-border); list-style: none; font-size: 0.875rem; }
+.hub-about__links a { color: var(--udocs-accent); font-weight: 600; text-decoration: none; }
+.hub-about__links a:hover { text-decoration: underline; }
+.hub-about__links a:focus-visible { outline: 2px solid var(--udocs-accent); outline-offset: 3px; }
+@media (max-width: 30rem) {
+  .hub-about__card { grid-template-columns: minmax(0, 1fr); }
+}
 
 .hub-footer { border-top: 1px solid var(--hub-border); color: var(--hub-muted-foreground); font-size: 0.875rem; }
 .hub-footer p { margin: 0; padding-block: 2rem; }
