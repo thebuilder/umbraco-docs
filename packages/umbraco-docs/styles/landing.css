@@ -47,7 +47,6 @@
   .udocs-hero__logo { width: 4.5rem; height: 4.5rem; object-fit: contain; }
   .udocs-hero__title { max-width: 20ch; margin: 0; font-family: var(--blume-font-display, system-ui); font-size: clamp(2.4rem, 6vw, 4rem); line-height: 1.05; letter-spacing: -0.02em; text-wrap: balance; }
   .udocs-hero__accent { color: transparent; background: var(--udocs-gradient); background-clip: text; -webkit-background-clip: text; }
-  .udocs-hero__eyebrow { margin: 0; color: var(--udocs-accent); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
   .udocs-hero__description { max-width: 44rem; margin: 0; color: var(--udocs-muted-foreground); font-size: clamp(1.05rem, 1.6vw, 1.25rem); line-height: 1.65; }
   .udocs-hero__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
   .udocs-hero__compatibility { margin: 0; color: var(--udocs-muted-foreground); font-size: 0.875rem; }
@@ -55,7 +54,6 @@
      behind it, so it keeps 4.5:1 even against the brightest of them. The buttons get a frosted
      backdrop, which an outlined button needs to stay legible there. */
   .udocs-hero:has(> .udocs-particles) :is(.udocs-hero__description, .udocs-hero__compatibility) { color: color-mix(in oklab, var(--udocs-foreground) 82%, transparent); }
-  .udocs-hero:has(> .udocs-particles) .udocs-hero__eyebrow { color: color-mix(in oklab, var(--udocs-accent) 60%, var(--udocs-foreground)); }
   .udocs-hero:has(> .udocs-particles) .udocs-hero__actions > * { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
   /* The split layout: the text on the left, the logo large on the right, where a particle logo
      forms too. Narrow screens put a smaller logo above the text. */
@@ -93,8 +91,6 @@
   .udocs-install button[data-udocs-copied] [data-done-icon] { opacity: 1; color: var(--udocs-accent); }
   .udocs-section-heading { max-width: 42rem; margin-bottom: 2.5rem; }
   .udocs-section-heading--center { margin-inline: auto; text-align: center; }
-  .udocs-section-heading__rule { display: block; width: 2.75rem; height: 0.25rem; margin-bottom: 1.15rem; border-radius: 999px; background: var(--udocs-gradient); }
-  .udocs-section-heading--center .udocs-section-heading__rule { margin-inline: auto; }
   .udocs-section-heading h2 { margin: 0 0 0.75rem; font-family: var(--blume-font-display, system-ui); font-size: clamp(1.7rem, 3.5vw, 2.4rem); font-weight: 750; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
   .udocs-section-heading p { margin: 0; color: var(--udocs-muted-foreground); font-size: 1.05rem; line-height: 1.65; }
   .udocs-screenshot { margin: 2.5rem 0 0; overflow: hidden; border: 1px solid var(--udocs-border); border-radius: calc(var(--udocs-radius) * 1.4); background: var(--udocs-muted); box-shadow: 0 24px 55px -30px color-mix(in oklab, var(--udocs-accent) 40%, transparent); }

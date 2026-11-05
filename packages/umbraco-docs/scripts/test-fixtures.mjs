@@ -22,6 +22,9 @@ for (const directory of directories) {
   assert.match(html, /data-udocs-copy="dotnet add package TheBuilder\.Fixture"/);
   assert.match(html, /Related package/);
   assert.match(html, /astro:page-load/);
+  // The family puts no eyebrow labels or accent lines above headings: a heading starts the section.
+  assert.match(html, /class="udocs-section-heading/);
+  assert.doesNotMatch(html, /eyebrow|udocs-section-heading__rule/);
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
   if (directory.endsWith("2.2.3")) {
     assert.match(html, /data-udocs-particles/);
@@ -30,7 +33,6 @@ for (const directory of directories) {
     const sheets = (await readdir(assets)).filter((file) => file.endsWith(".css"));
     const css = (await Promise.all(sheets.map((file) => readFile(`${assets}/${file}`, "utf8")))).join("");
     assert.match(css, /--udocs-diagram-fill/);
-    assert.match(html, /class="udocs-hero__eyebrow"[^>]*>Shared docs fixture</);
   }
   else assert.doesNotMatch(html, /data-udocs-particles/);
   // 1.4.3 keeps the centered hero with its small logo; the others split it, and 1.6.4 draws its
