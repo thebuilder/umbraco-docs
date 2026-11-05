@@ -22,9 +22,9 @@ for (const directory of directories) {
   assert.match(html, /data-udocs-copy="dotnet add package TheBuilder\.Fixture"/);
   assert.match(html, /Related package/);
   assert.match(html, /astro:page-load/);
-  // The family puts no eyebrow labels or accent lines above headings: a heading starts the section.
-  assert.match(html, /class="udocs-section-heading/);
-  assert.doesNotMatch(html, /eyebrow|udocs-section-heading__rule/);
+  // The family puts no eyebrow text above headings: a section starts with its gradient line and heading.
+  assert.match(html, /class="udocs-section-heading__rule"/);
+  assert.doesNotMatch(html, /eyebrow/);
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
   if (directory.endsWith("2.2.3")) {
     assert.match(html, /data-udocs-particles/);
