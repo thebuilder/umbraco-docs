@@ -1,8 +1,6 @@
 ---
 interface Props {
   title: string;
-  /** A short line above the title, such as what the package is for. */
-  eyebrow?: string;
   description?: string;
   logo?: string;
   logoAlt?: string;
@@ -16,7 +14,7 @@ interface Props {
   layout?: "centered" | "split";
 }
 
-const { title, eyebrow, description, logo, logoAlt = "", accent, compatibility, layout = "centered" } = Astro.props;
+const { title, description, logo, logoAlt = "", accent, compatibility, layout = "centered" } = Astro.props;
 const split = layout === "split";
 ---
 
@@ -26,7 +24,6 @@ const split = layout === "split";
   <div class="udocs-shell udocs-hero__inner">
     <div class="udocs-hero__copy">
       {logo && !split && <img class="udocs-hero__logo" src={logo} width="72" height="72" alt={logoAlt} data-udocs-reveal />}
-      {eyebrow && <p class="udocs-hero__eyebrow" data-udocs-reveal>{eyebrow}</p>}
       <h1 id="udocs-hero-title" class="udocs-hero__title" data-udocs-reveal>
         {title}{accent && <> <span class="udocs-hero__accent">{accent}</span></>}
       </h1>
