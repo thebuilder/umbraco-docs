@@ -6,7 +6,7 @@
 
 Shared, composable presentation and metadata contracts for TheBuilder's Umbraco package documentation. Product facts and product-specific content stay in each consumer repository.
 
-Works with Blume 1.4.3 and later, including Blume 2. Blume is an optional peer dependency, since only `PageShell` needs it. The fixtures in `fixtures/` build against Blume 1.4.3, 1.6.4, and 2.2.3.
+Works with Blume 1.4.3 and later, including Blume 2. Blume is an optional peer dependency, since only `PageShell` needs it. The fixtures in `fixtures/` build against Blume 1.4.3, 1.6.4, and 2.2.7.
 
 ## Consumer manifest
 

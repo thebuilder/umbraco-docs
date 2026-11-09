@@ -1,0 +1,16 @@
+{
+  "name": "@thebuilder/umbraco-docs-fixture-blume-2-2-7",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "blume check --isolated && blume build --isolated" },
+  "dependencies": {
+    "@thebuilder/umbraco-docs": "file:../..",
+    "blume": "2.2.7",
+    "vgpu": "0.6.0"
+  },
+  "pnpm": {
+    "packageExtensions": {
+      "@astrojs/astro2tsx@0.1": { "dependencies": { "@emnapi/runtime": "1.11.3" } }
+    }
+  }
+}

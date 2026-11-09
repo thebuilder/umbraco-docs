@@ -10,7 +10,7 @@ function run(args) {
   });
 }
 
-const directories = ["fixtures/blume-1.4.3", "fixtures/blume-1.6.4", "fixtures/blume-2.2.3"];
+const directories = ["fixtures/blume-1.4.3", "fixtures/blume-1.6.4", "fixtures/blume-2.2.7"];
 
 for (const directory of directories) {
   await run(["--dir", directory, "install", "--ignore-workspace", "--frozen-lockfile"]);
@@ -26,7 +26,7 @@ for (const directory of directories) {
   assert.match(html, /class="udocs-section-heading__rule"/);
   assert.doesNotMatch(html, /eyebrow/);
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
-  if (directory.endsWith("2.2.3")) {
+  if (directory.endsWith("2.2.7")) {
     assert.match(html, /data-udocs-particles/);
     // The shared diagram style reaches the site's stylesheet through its theme.css import.
     const assets = `${directory}/.blume-verify/dist/_astro`;
@@ -36,7 +36,7 @@ for (const directory of directories) {
   }
   else assert.doesNotMatch(html, /data-udocs-particles/);
   // 1.4.3 keeps the centered hero with its small logo; the others split it, and 1.6.4 draws its
-  // logo large beside the text, where 2.2.3's particles form instead.
+  // logo large beside the text, where 2.2.7's particles form instead.
   if (directory.endsWith("1.4.3")) {
     assert.match(html, /data-layout="centered"/);
     assert.match(html, /class="udocs-hero__logo"/);
