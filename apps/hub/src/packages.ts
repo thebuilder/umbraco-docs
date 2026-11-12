@@ -94,6 +94,21 @@ export const packages = [
     categories: ["Developer Tools", "Editor Tools"],
   }),
   defineUmbracoPackage({
+    id: "thebuilder.deliveryapiinspector",
+    name: "Delivery API Inspector",
+    summary: "Adds an API tab to every document and media item in the backoffice, with the JSON the Delivery API returns for it.",
+    links: {
+      docs: "https://delivery-api-inspector.thebuilder.dk/",
+      nuget: "https://www.nuget.org/packages/TheBuilder.DeliveryApiInspector",
+      marketplace: "https://marketplace.umbraco.com/package/thebuilder.deliveryapiinspector",
+      github: "https://github.com/thebuilder/umbraco-delivery-api-inspector",
+    },
+    logo: "/logos/delivery-api-inspector.svg",
+    compatibility: { umbraco: ">=17.4 <19", dotnet: ">=10" },
+    status: "stable",
+    categories: ["Headless", "Developer Tools"],
+  }),
+  defineUmbracoPackage({
     id: "charlietango.umbracorichtext",
     name: "Umbraco Rich Text",
     summary: "Renders the rich text JSON from the Umbraco Content Delivery API with React. You decide how each block and node is rendered.",
