@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { formatCompatibility, formatUmbracoVersions } from "../dist/index.js";
+import { formatUmbracoVersions } from "../dist/index.js";
 
-test("formatCompatibility words the hero's compatibility line", () => {
-  assert.equal(formatCompatibility({ umbraco: ">=17.1 <19", dotnet: ">=10" }), "Umbraco CMS 17.1 through 18.x · .NET 10");
-  assert.equal(formatCompatibility({ umbraco: ">=17.4 <19", dotnet: ">=10" }), "Umbraco CMS 17.4 through 18.x · .NET 10");
-  assert.equal(formatCompatibility({ umbraco: ">=17.1 <19" }), "Umbraco CMS 17.1 through 18.x");
+test("formatUmbracoVersions words the hero's compatibility line", () => {
+  assert.equal(formatUmbracoVersions(">=17.1 <19"), "Umbraco CMS 17.1 through 18.x");
+  assert.equal(formatUmbracoVersions(">=17.4 <19"), "Umbraco CMS 17.4 through 18.x");
 });
 
 test("formatUmbracoVersions covers single majors, open ranges and anything else", () => {
