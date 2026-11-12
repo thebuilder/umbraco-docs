@@ -9,12 +9,18 @@ import { CENTERED, createHeroScene, type HeroLayout } from "./scene.js";
 
 const INTRO_SECONDS = 3.4;
 // How far the logo turns toward the pointer at most, in radians: sideways, then up and down.
-const MAX_TILT = [0.12, 0.07] as const;
+const MAX_TILT = [0.06, 0.035] as const;
+// How far the eye moves with the pointer at most, in view units: sideways, then up and down. The
+// logo holds still while the star field slides past it, nearer stars further than distant ones.
+const MAX_PAN = [0.32, 0.18] as const;
 const CLEAR = [0, 0, 0, 0] as const;
 // The logo is drawn into a square this many pixels wide before particles are placed on it.
 const RASTER = 256;
 // How much of an anchor's box the logo fills, leaving room for the particles' glow.
 const ANCHOR_FILL = 0.9;
+// Raster pixels between the points read off a flow's path, and the most points read.
+const FLOW_STEP = 3;
+const FLOW_POINTS = 256;
 
 /** A stroke of the logo that flows, as SVG path data in the logo's own coordinates. */
 export interface HeroFlow {
@@ -75,10 +81,16 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
   const onCleanup = (cleanup: () => void) => cleanups.unshift(cleanup);
 
   void (async () => {
+    // The hero is decoration: let the page load, paint and settle first, and keep each step of the
+    // setup short, so starting the particles never holds up scrolling or the first frames.
+    await whenIdle();
+    if (disposed) return;
     const field = await loadField(options).catch(() => undefined);
     if (!field) return fallBack();
     if (disposed) return;
 
+    await nextTask();
+    if (disposed) return;
     // The particle draw reads the simulation output from a vertex-stage storage buffer. Browsers
     // that don't know this limit reject it, but they allow vertex storage anyway, so retry without.
     const gpu = await init({ requiredLimits: { maxStorageBuffersInVertexStage: 1 } })
@@ -96,6 +108,8 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
 
     const output = surface(gpu, canvas, { dpr: [1, 1.5], clearColor: CLEAR });
     const scene = createHeroScene(gpu, output, field);
+    await nextTask();
+    if (disposed) return;
     const dark = { value: isDark() ? 1 : 0, target: isDark() ? 1 : 0 };
     scene.look({ dark: dark.value });
     scene.move({ intro: reducedMotion ? 1 : 0 });
@@ -187,6 +201,7 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
     const time = clock(gpu);
     let elapsed = 0;
     const tilt = { x: 0, y: 0 };
+    const pan = { x: 0, y: 0 };
     const start = () => frameLoop(gpu, (currentFrame) => {
       // Clamp the step, so returning to the tab does not fling the springs.
       const dt = Math.min(time.deltaTime, 1 / 20);
@@ -195,17 +210,25 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
       pointer.x += (pointer.targetX - pointer.x) * follow(10);
       pointer.y += (pointer.targetY - pointer.y) * follow(10);
       pointer.active += (pointer.targetActive - pointer.active) * follow(4);
-      // The logo turns gently toward the pointer, and sways on its own when left alone. The turn
-      // follows how far the pointer is from the logo as a share of the hero's width, not its
-      // distance, so a wide hero turns no further than a narrow one, and it stays small: tilted
-      // further, the logo skews and the dust field shows its edge.
+      // The eye follows the pointer, so the star field slides by in depth, and drifts on its own
+      // when left alone. The logo only turns slightly toward the pointer. Both follow how far the
+      // pointer is from the logo as a share of the hero's width, not its distance, so a wide hero
+      // moves no further than a narrow one.
       const clamp = (value: number) => Math.max(-1, Math.min(1, value));
       const across = clamp((pointer.x - mark.offset[0]) / scene.aspect);
       const up = clamp(pointer.y - mark.offset[1]);
-      const tiltX = across * MAX_TILT[0] * pointer.active + Math.sin(elapsed * 0.23) * MAX_TILT[0] * 0.5 * (1 - pointer.active);
-      const tiltY = -up * MAX_TILT[1] * pointer.active + Math.sin(elapsed * 0.17) * MAX_TILT[1] * 0.5 * (1 - pointer.active);
+      const idle = 1 - pointer.active;
+      const swayX = Math.sin(elapsed * 0.23);
+      const swayY = Math.sin(elapsed * 0.17);
+      const tiltX = (across * pointer.active + swayX * 0.5 * idle) * MAX_TILT[0];
+      const tiltY = (-up * pointer.active + swayY * 0.5 * idle) * MAX_TILT[1];
       tilt.x += (tiltX - tilt.x) * follow(2);
       tilt.y += (tiltY - tilt.y) * follow(2);
+      // Slower than the pointer, so the stars glide on and settle rather than snap.
+      const panX = (across * pointer.active + swayX * 0.4 * idle) * MAX_PAN[0];
+      const panY = (up * pointer.active + swayY * 0.4 * idle) * MAX_PAN[1];
+      pan.x += (panX - pan.x) * follow(1.6);
+      pan.y += (panY - pan.y) * follow(1.6);
       dark.value += (dark.target - dark.value) * follow(6);
       scene.look({ dark: dark.value });
       scene.move({
@@ -215,6 +238,7 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
         pointer: [pointer.x, pointer.y],
         pointerActive: pointer.active,
         tilt: [tilt.x, tilt.y],
+        pan: [pan.x, pan.y],
       });
       render(currentFrame);
     });
@@ -254,9 +278,24 @@ export function startHeroParticles(canvas: HTMLCanvasElement, options: HeroParti
   };
 }
 
+/** Resolves once the page has a quiet moment, or after a second at the latest. */
+function whenIdle(): Promise<void> {
+  return new Promise((resolve) => {
+    if ("requestIdleCallback" in window) requestIdleCallback(() => resolve(), { timeout: 1000 });
+    else setTimeout(resolve, 200);
+  });
+}
+
+/** Lets the page handle input and paint before the next step of the setup. */
+function nextTask(): Promise<void> {
+  const scheduler = (globalThis as { scheduler?: { yield?: () => Promise<void> } }).scheduler;
+  return scheduler?.yield ? scheduler.yield() : new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 /** Draws the logo into pixels and samples its flow, then places the particles. */
 async function loadField({ logo, flow }: HeroParticlesOptions) {
   const { image, viewBox } = await loadLogo(logo);
+  await nextTask();
 
   // Fit the logo into the square, keeping its shape.
   const box = flow ? viewBoxSize(flow.viewBox) : viewBox ?? [image.naturalWidth || 1, image.naturalHeight || 1];
@@ -270,8 +309,10 @@ async function loadField({ logo, flow }: HeroParticlesOptions) {
   context.drawImage(image, offset[0], offset[1], box[0] * scale, box[1] * scale);
   // Throws for a cross-origin logo without CORS; the caller leaves the fallback in place.
   const pixels: LogoPixels = context.getImageData(0, 0, RASTER, RASTER);
+  const stroke = flow ? sampleFlow(flow, scale, offset) : undefined;
+  await nextTask();
 
-  return createParticleField(pixels, flow ? { flow: sampleFlow(flow, scale, offset) } : {});
+  return createParticleField(pixels, stroke ? { flow: stroke } : {});
 }
 
 /**
@@ -306,7 +347,11 @@ function viewBoxSize(viewBox: HeroFlow["viewBox"]): readonly [number, number] {
   return typeof viewBox === "number" ? [viewBox, viewBox] : viewBox;
 }
 
-/** Samples the flow's SVG path with the browser's own geometry, in raster pixels. */
+/**
+ * Samples the flow's SVG path with the browser's own geometry, in raster pixels. Each point costs
+ * a walk along the path, so take one every few pixels: the field resamples the line evenly, and
+ * straight chords this short sit well inside a pixel of any curve a logo has.
+ */
 function sampleFlow(flow: HeroFlow, scale: number, offset: readonly [number, number]): FlowStroke {
   const namespace = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(namespace, "svg");
@@ -318,7 +363,7 @@ function sampleFlow(flow: HeroFlow, scale: number, offset: readonly [number, num
   document.body.append(svg);
   try {
     const length = path.getTotalLength();
-    const count = Math.max(Math.ceil(length), 2);
+    const count = Math.min(Math.max(Math.ceil((length * scale) / FLOW_STEP), 2), FLOW_POINTS);
     const points = Array.from({ length: count + 1 }, (_, i) => {
       const point = path.getPointAtLength((i / count) * length);
       return [offset[0] + point.x * scale, offset[1] + point.y * scale] as const;

@@ -1,5 +1,6 @@
 // One thread per particle: places it on the logo (streaming along the flow, if the logo has one),
-// runs the intro swirl, the tilt and the pointer spring, then writes the sprite particles.wgsl draws.
+// runs the intro swirl, the tilt, the parallax and the pointer spring, then writes the sprite
+// particles.wgsl draws.
 //
 // View space is y up from -1 to 1 and x from -aspect to aspect. Logo positions are pixels of the
 // rasterized logo, y down; field.ts builds them.
@@ -38,7 +39,11 @@ struct Params {
   // Where that center sits, in view units.
   markOffset: vec2f,
   pointer: vec2f,
+  // How far the logo turns, in radians.
   tilt: vec2f,
+  // Where the eye has moved to. The logo's plane holds still, so nearer dust slides against it
+  // and farther dust drifts with it.
+  pan: vec2f,
   aspect: f32,
   // View units per logo pixel.
   markScale: f32,
@@ -66,6 +71,11 @@ struct Params {
 const PI = 3.14159265359;
 const TAU = 6.28318530718;
 const CAMERA = 2.6;
+// How far the dust reaches in front of and behind the logo's plane.
+const DUST_DEPTH = 1.6;
+// How far each layer of dust reaches past the edges of the view, so the parallax never brings an
+// edge into view.
+const DUST_MARGIN = 0.25;
 
 struct FlowPoint {
   position: vec2f,
@@ -129,13 +139,20 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
   var glow = 0.0;
 
   if (kind == 2u) {
-    // Dust rises slowly through the hero and wraps around, nearer motes faster.
+    // Dust rises slowly through the hero and wraps around, nearer motes faster. Each layer is
+    // spread to fill the view at its own depth, so near and far dust are as dense on screen.
     let depth = particle.a.z;
+    let z = (depth - 0.5) * DUST_DEPTH;
+    let spread = (CAMERA - z) / CAMERA;
     let rise = fract((particle.d.y + 1.0) * 0.5 + t * (0.004 + depth * 0.01)) * 2.0 - 1.0;
     let sway = sin(t * 0.21 + phase) * 0.025;
-    // The field reaches past the sides, so the tilt never brings its edge into view.
-    position = vec3f((particle.d.x * 1.2 + sway) * params.aspect, rise * 1.06, (depth - 0.5) * 1.3);
-    alpha = smoothstep(1.06, 0.9, abs(rise)) * smoothstep(0.0, 0.6, params.intro);
+    position = vec3f(
+      (particle.d.x * (params.aspect + DUST_MARGIN) + sway) * spread,
+      rise * (1.0 + DUST_MARGIN) * spread,
+      z,
+    );
+    // Fades out and back in past the top and bottom of the view, where the motes wrap around.
+    alpha = smoothstep(1.0, 0.92, abs(rise)) * smoothstep(0.0, 0.6, params.intro);
   } else {
     var home = particle.a.xy;
     if (kind == 0u && params.flowSamples > 1u) {
@@ -168,17 +185,22 @@ fn cs_main(@builtin(global_invocation_id) gid: vec3u) {
     glow += (1.0 - pull) * pull * 2.4;
   }
 
-  // Tilt around the mark's center, then project.
-  let pivot = vec3f(params.markOffset, 0.0);
+  // Turn the logo around its center; the dust stays upright, so it never swings like a plane. The
+  // dust fills the view around its center, wherever the logo stands.
+  let pivot = select(vec3f(params.markOffset, 0.0), vec3f(0.0), kind == 2u);
   var p = position - pivot;
-  let cy = cos(params.tilt.x);
-  let sy = sin(params.tilt.x);
-  p = vec3f(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
-  let cx = cos(params.tilt.y);
-  let sx = sin(params.tilt.y);
-  p = vec3f(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
+  if (kind != 2u) {
+    let cy = cos(params.tilt.x);
+    let sy = sin(params.tilt.x);
+    p = vec3f(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
+    let cx = cos(params.tilt.y);
+    let sx = sin(params.tilt.y);
+    p = vec3f(p.x, p.y * cx - p.z * sx, p.y * sx + p.z * cx);
+  }
+  // Project from the moved eye, keeping the logo's plane in place: a particle shifts by the pan
+  // times how much nearer or farther than that plane it is.
   let perspective = CAMERA / max(CAMERA - p.z, 0.2);
-  let screen = p.xy * perspective + pivot.xy;
+  let screen = (p.xy - params.pan) * perspective + params.pan + pivot.xy;
 
   // The pointer pushes particles aside with a slight swirl; a spring brings them home.
   var state = motion[index];
