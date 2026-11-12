@@ -6,7 +6,8 @@ import LandingRoot from "@thebuilder/umbraco-docs/components/LandingRoot";
 import SectionHeading from "@thebuilder/umbraco-docs/components/SectionHeading";
 
 import Layout from "../layouts/Layout.astro";
-import { docsLabel, formatUmbraco } from "../format.ts";
+import { formatUmbracoVersions } from "@thebuilder/umbraco-docs";
+import { docsLabel } from "../format.ts";
 import { packages } from "../packages.ts";
 import { markFlow, tagline } from "../site.ts";
 
@@ -46,7 +47,7 @@ const profileUrl = "https://github.com/thebuilder";
                 <div>
                   <h3><a class="hub-package__link" href={item.links.docs}>{item.name}</a></h3>
                   <p class="hub-package__meta">
-                    <span>{formatUmbraco(item.compatibility.umbraco)}</span>
+                    <span>{formatUmbracoVersions(item.compatibility.umbraco)}</span>
                   </p>
                 </div>
               </div>

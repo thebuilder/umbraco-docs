@@ -21,6 +21,8 @@ for (const directory of directories) {
   assert.match(html, /data-udocs-root/);
   assert.match(html, /data-udocs-copy="dotnet add package TheBuilder\.Fixture"/);
   assert.match(html, /Related package/);
+  // The hero words the manifest's compatibility the same way on every site.
+  assert.match(html, /class="udocs-hero__compatibility"[^>]*>Umbraco CMS 17 through 18\.x</);
   assert.match(html, /astro:page-load/);
   // The family puts no eyebrow text above headings: a section starts with its gradient line and heading.
   assert.match(html, /class="udocs-section-heading__rule"/);
