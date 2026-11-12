@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 
-import { formatUmbraco } from "../format.ts";
+import { formatUmbracoVersions } from "@thebuilder/umbraco-docs";
 import { packages } from "../packages.ts";
 import { tagline } from "../site.ts";
 
@@ -11,7 +11,7 @@ export const GET: APIRoute = ({ site }) => {
       item.links.nuget && `NuGet: ${item.links.nuget}`,
       item.links.npm && `npm: ${item.links.npm}`,
     ].filter(Boolean);
-    const details = [`${formatUmbraco(item.compatibility.umbraco)}.`, ...install.map((line) => `${line}.`), `Source: ${item.links.github}.`];
+    const details = [`${formatUmbracoVersions(item.compatibility.umbraco)}.`, ...install.map((line) => `${line}.`), `Source: ${item.links.github}.`];
     return `- [${item.name}](${item.links.docs}): ${item.summary} ${details.join(" ")}`;
   });
 

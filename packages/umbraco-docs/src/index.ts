@@ -9,6 +9,7 @@ export type {
   UmbracoPackageLinks,
   UmbracoPackageStatus,
 } from "./package.js";
+export { formatUmbracoVersions } from "./compatibility.js";
 export { DEFAULT_REGISTRY_URL, loadUmbracoPackages } from "./registry.js";
 export type { LoadUmbracoPackagesOptions } from "./registry.js";
 export { DOCS_ACCENT, docsTheme } from "./theme.js";

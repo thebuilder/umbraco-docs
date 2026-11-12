@@ -1,11 +1,18 @@
 ---
+import { formatUmbracoVersions, type UmbracoCompatibility } from "@thebuilder/umbraco-docs";
+
 interface Props {
   title: string;
   description?: string;
   logo?: string;
   logoAlt?: string;
   accent?: string;
-  compatibility?: string;
+  /**
+   * The line under the install command. Pass the package's `compatibility` from its
+   * `defineUmbracoPackage` manifest, so every docs site words it the same way. A string is
+   * still shown as written, but is deprecated.
+   */
+  compatibility?: UmbracoCompatibility | string;
   /**
    * `centered` (the default) stacks everything in the middle. `split` puts the text on the left
    * and the logo, or a particle logo from the background slot, large on the right; on narrow
@@ -30,7 +37,7 @@ const split = layout === "split";
       {description && <p class="udocs-hero__description" data-udocs-reveal>{description}</p>}
       <div class="udocs-hero__actions" data-udocs-reveal><slot name="actions" /></div>
       <slot name="install" />
-      {compatibility && <p class="udocs-hero__compatibility" data-udocs-reveal>{compatibility}</p>}
+      {compatibility && <p class="udocs-hero__compatibility" data-udocs-reveal>{typeof compatibility === "string" ? compatibility : formatUmbracoVersions(compatibility.umbraco)}</p>}
     </div>
     {/* Where the logo goes in the split layout. A particle logo forms here too. */}
     {split && (
