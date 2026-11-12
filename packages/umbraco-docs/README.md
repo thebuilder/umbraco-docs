@@ -79,7 +79,7 @@ Use a diagram where a page explains a flow or a choice that's hard to follow in 
 
 ## Particle hero
 
-`HeroParticles` draws the site's logo in glowing WebGPU particles, as on [umbraco.thebuilder.dk](https://umbraco.thebuilder.dk). The particles swirl in from a scattered sky, settle into the logo in its own colors, and scatter around the pointer. Put it in the hero's `background` slot. Package docs sites use the split layout, so the logo forms beside the text instead of behind it:
+`HeroParticles` draws the site's logo in glowing WebGPU particles, as on [umbraco.thebuilder.dk](https://umbraco.thebuilder.dk). The particles swirl in from a scattered sky, settle into the logo in its own colors, and scatter around the pointer. Behind the logo, a field of dust drifts at different depths and slides past in parallax as the pointer moves. Put it in the hero's `background` slot. Package docs sites use the split layout, so the logo forms beside the text instead of behind it:
 
 ```astro
 ---
@@ -109,6 +109,7 @@ How it behaves:
 - **Readability.** Over the particles, the hero's description and compatibility line are brighter than usual, and the action buttons get a frosted backdrop. In the centered layout, where the logo forms behind the text, the particles also dim behind the text, so it keeps 4.5:1 contrast even against the brightest particles.
 - **Layout.** The particles fill the hero down to the first content after the text, such as a `ScreenshotFrame`. In the split layout the logo forms in the column beside the text, or above it on narrow screens; in the centered layout it fills the middle and steps back behind the text, so leave out the hero's own `logo` there. In the split layout a `logo` is replaced by the particles. When the hero sits under a sticky header, such as Blume's, the particles run on up behind it, and the header starts clear and turns to its usual frosted bar as the page scrolls. Browsers without scroll-driven animations, such as Firefox, get the same from a scroll listener. Don't clip vertical overflow on an element around the hero, such as `overflow: clip` on the `LandingRoot` class; use `overflow-x: clip`, or the particles can't reach the header.
 - **Themes.** It follows `data-theme` on `<html>`, which Blume sets, and the system theme without one: light on dark, colored ink on light.
+- **Loading.** The hero waits for the page to finish its first paint and go idle, loads its code on its own, and splits its setup into short steps, so it never holds up the page. The layout, including the clear header, is in place before the first paint, so nothing shifts when the particles start.
 - **Fallbacks.** With reduced motion it draws one still frame. Without WebGPU, or if the logo can't be read, the logo itself shows where the particles would form, faded behind the text in the centered layout. It pauses while scrolled out of view.
 
 For a still of the same scene, such as a social card backdrop, `@thebuilder/umbraco-docs/hero` exports `createParticleField` and `createHeroScene`, which also run in Node with `vgpu/node`. The hub renders its card backdrop this way in `apps/hub/scripts/render-og-backdrop.ts`.

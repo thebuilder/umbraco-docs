@@ -19,80 +19,112 @@ const { logo, flow } = Astro.props;
   <canvas class="udocs-particles__canvas"></canvas>
 </div>
 
-<script>
-  import { startHeroParticles } from "@thebuilder/umbraco-docs/hero";
+<script is:inline data-astro-rerun>
+  // The layout runs inline, as soon as the hero starts parsing, so the particles' box and the clear
+  // header are in place before the first paint instead of shifting the page once the module loads.
+  (() => {
+    const container = document.currentScript?.previousElementSibling;
+    const hero = container?.parentElement;
+    if (!(container instanceof HTMLElement) || !hero) return;
+    // The rest of the hero may not be parsed yet, so each fit looks its parts up again.
+    const content = () => hero.querySelector(".udocs-hero__inner");
+    // In the split layout the logo forms in its own column.
+    const anchor = () => hero.querySelector("[data-udocs-hero-art]");
 
+    // Stop above whatever follows the text in the hero, such as a screenshot. Under a sticky
+    // header, like Blume's, reach up behind it too, so the particles run on under the header
+    // instead of ending in a line at its edge. Only the header: content above it stays clear.
+    let lift = 0;
+    // Where the hero was when the header was last looked for. Fonts and images loading below the
+    // hero resize the page many times while it loads; only a move of the hero itself, or a new
+    // window width, can change what covers it.
+    let measuredAt = "";
+    // A sticky or fixed element before the hero whose bottom edge meets the hero's top. This
+    // reads layout rather than hit-testing, which during a view transition (Blume's client-side
+    // navigation) hits the transition's snapshot instead of the page.
+    const coveringHeader = () => {
+      const rect = hero.getBoundingClientRect();
+      // Scrolled past the hero's top, the header no longer meets it; keep the last measurement.
+      if (rect.top < 1) return lift;
+      const at = `${rect.top} ${window.innerWidth}`;
+      if (at === measuredAt) return lift;
+      measuredAt = at;
+      let covered = 0;
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+      for (let node = walker.nextNode(); node && node !== hero; node = walker.nextNode()) {
+        if (node.contains(hero)) continue;
+        const position = getComputedStyle(node).position;
+        if (position !== "sticky" && position !== "fixed") continue;
+        const box = node.getBoundingClientRect();
+        if (box.height > 0 && Math.abs(box.bottom - rect.top) <= 1) covered = Math.max(covered, Math.round(rect.top - box.top));
+      }
+      return covered;
+    };
+    const fit = () => {
+      let below = content()?.nextElementSibling;
+      while (below && ["SCRIPT", "STYLE", "TEMPLATE"].includes(below.tagName)) below = below.nextElementSibling;
+      if (below instanceof HTMLElement) container.style.setProperty("--udocs-particles-height", `${below.offsetTop}px`);
+      else container.style.removeProperty("--udocs-particles-height");
+      lift = coveringHeader();
+      hero.style.setProperty("--udocs-particles-lift", `${lift}px`);
+      container.dataset.lift = String(lift);
+      // The header goes clear at the top of the page only when the particles run behind it.
+      document.documentElement.toggleAttribute("data-udocs-particles-header", lift > 0);
+      // Without WebGPU, the still logo stands in the same box the particles would form in.
+      const art = anchor();
+      if (art) {
+        const box = container.getBoundingClientRect();
+        const rect = art.getBoundingClientRect();
+        container.style.setProperty("--udocs-particles-art-top", `${rect.top - box.top}px`);
+        container.style.setProperty("--udocs-particles-art-left", `${rect.left - box.left}px`);
+        container.style.setProperty("--udocs-particles-art-width", `${rect.width}px`);
+        container.style.setProperty("--udocs-particles-art-height", `${rect.height}px`);
+      }
+    };
+    fit();
+    // Anything above the hero can move it too, such as a header changing height or a late banner.
+    const layout = new ResizeObserver(fit);
+    layout.observe(hero);
+    layout.observe(document.body);
+
+    // Browsers without scroll-driven animations (landing.css) get the header's scroll state here.
+    const scrollState = CSS.supports("animation-timeline: scroll()")
+      ? undefined
+      : () => document.documentElement.toggleAttribute("data-udocs-scrolled", window.scrollY > 8);
+    if (scrollState) {
+      scrollState();
+      window.addEventListener("scroll", scrollState, { passive: true });
+    }
+    document.addEventListener("astro:before-swap", () => {
+      layout.disconnect();
+      document.documentElement.removeAttribute("data-udocs-particles-header");
+      if (scrollState) {
+        window.removeEventListener("scroll", scrollState);
+        document.documentElement.removeAttribute("data-udocs-scrolled");
+      }
+    }, { once: true });
+  })();
+</script>
+
+<script>
   const started = new WeakSet<HTMLElement>();
 
-  const start = () => {
-    for (const container of document.querySelectorAll<HTMLElement>("[data-udocs-particles]")) {
-      if (started.has(container)) continue;
-      started.add(container);
+  const start = async () => {
+    const containers = [...document.querySelectorAll<HTMLElement>("[data-udocs-particles]")].filter((container) => !started.has(container));
+    if (containers.length === 0) return;
+    for (const container of containers) started.add(container);
+    // Loaded on its own, after the page, so the particles' code never holds up the first paint.
+    const { startHeroParticles } = await import("@thebuilder/umbraco-docs/hero");
+    for (const container of containers) {
       const canvas = container.querySelector("canvas");
       const hero = container.parentElement;
       const logo = container.dataset.logo;
-      if (!canvas || !hero || !logo) continue;
+      if (!canvas || !hero || !logo || !container.isConnected) continue;
       const content = hero.querySelector<HTMLElement>(".udocs-hero__inner") ?? undefined;
       // In the split layout the logo forms in its own column, clear of the text, so the particles
       // only need to step back behind the text when it's centered on top of them.
       const anchor = hero.querySelector<HTMLElement>("[data-udocs-hero-art]") ?? undefined;
       const text = anchor ? undefined : (hero.querySelector<HTMLElement>(".udocs-hero__copy") ?? content);
-
-      // Stop above whatever follows the text in the hero, such as a screenshot. Under a sticky
-      // header, like Blume's, reach up behind it too, so the particles run on under the header
-      // instead of ending in a line at its edge. Only the header: content above it stays clear.
-      let lift = 0;
-      // A sticky or fixed element before the hero whose bottom edge meets the hero's top. This
-      // reads layout rather than hit-testing, which during a view transition (Blume's client-side
-      // navigation) hits the transition's snapshot instead of the page.
-      const coveringHeader = () => {
-        const rect = hero.getBoundingClientRect();
-        // Scrolled past the hero's top, the header no longer meets it; keep the last measurement.
-        if (rect.top < 1) return lift;
-        let covered = 0;
-        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
-        for (let node = walker.nextNode() as Element | null; node && node !== hero; node = walker.nextNode() as Element | null) {
-          if (node.contains(hero)) continue;
-          const position = getComputedStyle(node).position;
-          if (position !== "sticky" && position !== "fixed") continue;
-          const box = node.getBoundingClientRect();
-          if (box.height > 0 && Math.abs(box.bottom - rect.top) <= 1) covered = Math.max(covered, Math.round(rect.top - box.top));
-        }
-        return covered;
-      };
-      const fit = () => {
-        let below = content?.nextElementSibling;
-        while (below && ["SCRIPT", "STYLE", "TEMPLATE"].includes(below.tagName)) below = below.nextElementSibling;
-        if (below instanceof HTMLElement) container.style.setProperty("--udocs-particles-height", `${below.offsetTop}px`);
-        else container.style.removeProperty("--udocs-particles-height");
-        lift = coveringHeader();
-        hero.style.setProperty("--udocs-particles-lift", `${lift}px`);
-        // The header goes clear at the top of the page only when the particles run behind it.
-        document.documentElement.toggleAttribute("data-udocs-particles-header", lift > 0);
-        // Without WebGPU, the still logo stands in the same box the particles would form in.
-        if (anchor) {
-          const box = container.getBoundingClientRect();
-          const rect = anchor.getBoundingClientRect();
-          container.style.setProperty("--udocs-particles-art-top", `${rect.top - box.top}px`);
-          container.style.setProperty("--udocs-particles-art-left", `${rect.left - box.left}px`);
-          container.style.setProperty("--udocs-particles-art-width", `${rect.width}px`);
-          container.style.setProperty("--udocs-particles-art-height", `${rect.height}px`);
-        }
-      };
-      // Anything above the hero can move it too, such as a header changing height or a late banner.
-      // Both observers report once right away, which does the first fit.
-      const layout = new ResizeObserver(fit);
-      layout.observe(hero);
-      layout.observe(document.body);
-
-      // Browsers without scroll-driven animations (landing.css) get the header's scroll state here.
-      const scrollState = CSS.supports("animation-timeline: scroll()")
-        ? undefined
-        : () => document.documentElement.toggleAttribute("data-udocs-scrolled", window.scrollY > 8);
-      if (scrollState) {
-        scrollState();
-        window.addEventListener("scroll", scrollState, { passive: true });
-      }
 
       const stop = startHeroParticles(canvas, {
         logo,
@@ -100,21 +132,14 @@ const { logo, flow } = Astro.props;
         ...(text ? { text } : {}),
         ...(anchor ? { anchor } : {}),
         pointerArea: hero,
-        coveredTop: () => lift,
+        // The inline layout script above measures how far the particles reach behind the header.
+        coveredTop: () => Number(container.dataset.lift) || 0,
         onFallback: () => { container.dataset.fallback = "true"; },
       });
-      document.addEventListener("astro:before-swap", () => {
-        layout.disconnect();
-        document.documentElement.removeAttribute("data-udocs-particles-header");
-        if (scrollState) {
-          window.removeEventListener("scroll", scrollState);
-          document.documentElement.removeAttribute("data-udocs-scrolled");
-        }
-        stop();
-      }, { once: true });
+      document.addEventListener("astro:before-swap", stop, { once: true });
     }
   };
 
-  start();
-  document.addEventListener("astro:page-load", start);
+  void start();
+  document.addEventListener("astro:page-load", () => void start());
 </script>

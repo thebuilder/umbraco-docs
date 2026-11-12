@@ -58,9 +58,14 @@ function random(seed: number): () => number {
   };
 }
 
-function srgbToLinear(channel: number): number {
+/** Each 8-bit sRGB channel value in linear light, worked out once rather than per particle. */
+const SRGB_TO_LINEAR = Array.from({ length: 256 }, (_, channel) => {
   const c = channel / 255;
   return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+});
+
+function srgbToLinear(channel: number): number {
+  return SRGB_TO_LINEAR[channel]!;
 }
 
 interface FlowSample {
@@ -118,6 +123,59 @@ function sampleFlow(stroke: FlowStroke): FlowSample[] {
   return samples;
 }
 
+// Grid cells for finding the nearest flow sample, in logo pixels.
+const CELL = 8;
+
+/**
+ * Finds the flow sample nearest a point, the first one on a tie, as a scan of every sample would.
+ * The samples sit in a grid and the search widens ring by ring around the point's cell, so a logo's
+ * thousands of particles each check a few samples instead of all of them. This runs on the page's
+ * main thread while the hero starts.
+ */
+function nearestSample(samples: readonly FlowSample[]): (x: number, y: number) => number {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const sample of samples) {
+    minX = Math.min(minX, sample.x);
+    minY = Math.min(minY, sample.y);
+    maxX = Math.max(maxX, sample.x);
+    maxY = Math.max(maxY, sample.y);
+  }
+  const columns = Math.floor((maxX - minX) / CELL) + 1;
+  const rows = Math.floor((maxY - minY) / CELL) + 1;
+  const cells: number[][] = Array.from({ length: columns * rows }, () => []);
+  samples.forEach((sample, k) => {
+    cells[Math.floor((sample.y - minY) / CELL) * columns + Math.floor((sample.x - minX) / CELL)]!.push(k);
+  });
+
+  return (x, y) => {
+    const column = Math.floor((x - minX) / CELL);
+    const row = Math.floor((y - minY) / CELL);
+    let best = -1;
+    let bestDistance = Infinity;
+    for (let ring = 0; ; ring++) {
+      for (let r = row - ring; r <= row + ring; r++) {
+        if (r < 0 || r >= rows) continue;
+        // Inside the ring only its edge is new; its middle was searched already.
+        const edge = r === row - ring || r === row + ring;
+        for (let c = column - ring; c <= column + ring; c += edge ? 1 : 2 * ring || 1) {
+          if (c < 0 || c >= columns) continue;
+          for (const k of cells[r * columns + c]!) {
+            const distance = (samples[k]!.x - x) ** 2 + (samples[k]!.y - y) ** 2;
+            if (distance < bestDistance || (distance === bestDistance && k < best)) {
+              bestDistance = distance;
+              best = k;
+            }
+          }
+        }
+      }
+      // Any sample past this ring is at least `ring` cells away, and past the grid there are none.
+      const reach = ring * CELL;
+      const covered = column - ring <= 0 && row - ring <= 0 && column + ring >= columns - 1 && row + ring >= rows - 1;
+      if ((best >= 0 && bestDistance <= reach * reach) || covered) return best;
+    }
+  };
+}
+
 /** Builds the particles for a logo. */
 export function createParticleField(logo: LogoPixels, options: { flow?: FlowStroke } = {}): ParticleField {
   const { data, width, height } = logo;
@@ -153,18 +211,11 @@ export function createParticleField(logo: LogoPixels, options: { flow?: FlowStro
   const step = flow ? 1 / (FLOW_SAMPLES - 1) : 0;
   // Samples are evenly spaced along the flow.
   const spacing = flow ? Math.hypot(flow[1]!.x - flow[0]!.x, flow[1]!.y - flow[0]!.y) || 1 : 1;
+  const nearest = flow ? nearestSample(flow) : undefined;
   // Where a point falls on the flow, if it does: the nearest sample, then along and across it.
   const onFlow = (x: number, y: number) => {
-    if (!flow) return undefined;
-    let best = -1;
-    let bestDistance = Infinity;
-    for (let k = 0; k < flow.length; k++) {
-      const distance = (flow[k]!.x - x) ** 2 + (flow[k]!.y - y) ** 2;
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        best = k;
-      }
-    }
+    if (!flow || !nearest) return undefined;
+    const best = nearest(x, y);
     const sample = flow[best]!;
     const previous = flow[Math.max(best - 1, 0)]!;
     const next = flow[Math.min(best + 1, flow.length - 1)]!;
@@ -186,12 +237,25 @@ export function createParticleField(logo: LogoPixels, options: { flow?: FlowStro
     progress: number; across: number; size: number; brightness: number;
     color: [number, number, number]; sparkle: number;
   }) => {
+    // Written value by value: this runs for every particle on the page's main thread.
     const o = i * PARTICLE_FLOATS;
-    particles.set([values.home[0], values.home[1], values.z, values.kind], o);
-    particles.set([values.progress, values.across, rand(), values.size], o + 4);
-    particles.set([...values.color, values.brightness], o + 8);
+    particles[o] = values.home[0];
+    particles[o + 1] = values.home[1];
+    particles[o + 2] = values.z;
+    particles[o + 3] = values.kind;
+    particles[o + 4] = values.progress;
+    particles[o + 5] = values.across;
+    particles[o + 6] = rand();
+    particles[o + 7] = values.size;
+    particles[o + 8] = values.color[0];
+    particles[o + 9] = values.color[1];
+    particles[o + 10] = values.color[2];
+    particles[o + 11] = values.brightness;
     // Scattered start, in -1..1 of the canvas, and a phase for the idle drift.
-    particles.set([rand() * 2 - 1, rand() * 2 - 1, rand() * Math.PI * 2, values.sparkle], o + 12);
+    particles[o + 12] = rand() * 2 - 1;
+    particles[o + 13] = rand() * 2 - 1;
+    particles[o + 14] = rand() * Math.PI * 2;
+    particles[o + 15] = values.sparkle;
   };
 
   for (let i = 0; i < markCount;) {

@@ -9,14 +9,17 @@ import type { Frame, Gpu, Target } from "vgpu";
 import { SPRITE_FLOATS, type ParticleField } from "./field.js";
 import * as shaders from "./shaders.generated.js";
 
-/** Per-frame inputs of simulate.wgsl. Pointer and tilt are in view space: y up, x scaled by aspect. */
+/** Per-frame inputs of simulate.wgsl. Pointer and pan are in view space: y up, x scaled by aspect. */
 export interface HeroMotion {
   time?: number;
   dt?: number;
   intro?: number;
   pointer?: [number, number];
   pointerActive?: number;
+  /** How far the logo turns, in radians: sideways, then up and down. */
   tilt?: [number, number];
+  /** Where the eye moves to; the star field slides past the logo in depth. */
+  pan?: [number, number];
 }
 
 export interface HeroLook {
@@ -80,7 +83,7 @@ export function createHeroScene(gpu: Gpu, output: Target, field: ParticleField, 
       motion,
       sprites,
       params: {
-        markCenter: field.center, markOffset: layout.offset, pointer: [0, 0], tilt: [0, 0],
+        markCenter: field.center, markOffset: layout.offset, pointer: [0, 0], tilt: [0, 0], pan: [0, 0],
         aspect: 1, markScale: 1, time: 0, dt: 0, intro: 1, flow: 0.012, dark: 1, pointerActive: 0,
         pixelRatio: 1, count: field.count, flowSamples: field.flowSamples, keep: 1,
       },
