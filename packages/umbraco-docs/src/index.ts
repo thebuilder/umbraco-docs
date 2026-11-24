@@ -13,3 +13,4 @@ export { formatUmbracoVersions } from "./compatibility.js";
 export { DEFAULT_REGISTRY_URL, loadUmbracoPackages } from "./registry.js";
 export type { LoadUmbracoPackagesOptions } from "./registry.js";
 export { DOCS_ACCENT, docsTheme } from "./theme.js";
+export { PAGEFLOCK_SCRIPT_SRC } from "./pageflock.js";

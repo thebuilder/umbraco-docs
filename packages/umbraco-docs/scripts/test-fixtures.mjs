@@ -30,6 +30,10 @@ for (const directory of directories) {
   // Only this fixture opts into the particle hero; the others prove a site without vgpu still builds.
   if (directory.endsWith("2.2.7")) {
     assert.match(html, /data-udocs-particles/);
+    // pageflock() puts Pageflock's script, with the site's ID, in the page head.
+    const head = html.slice(0, html.indexOf("</head>"));
+    assert.match(head, /<script[^>]*src="https:\/\/e\.pageflock\.com\/s\.auto\.js"[^>]*>/);
+    assert.match(head, /<script[^>]*data-site="fixture-thebuilder-dk"[^>]*>/);
     // The shared diagram style reaches the site's stylesheet through its theme.css import.
     const assets = `${directory}/.blume-verify/dist/_astro`;
     const sheets = (await readdir(assets)).filter((file) => file.endsWith(".css"));

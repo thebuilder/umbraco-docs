@@ -1,5 +1,6 @@
 ---
 import Analytics from "@vercel/analytics/astro";
+import { PAGEFLOCK_SCRIPT_SRC } from "@thebuilder/umbraco-docs";
 
 import "../styles/hub.css";
 
@@ -35,6 +36,7 @@ const ogImageUrl = new URL(ogImage, Astro.site);
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImageUrl} />
+    <script is:inline defer src={PAGEFLOCK_SCRIPT_SRC} data-site="umbraco-thebuilder-dk"></script>
     <script is:inline>
       // Apply a saved theme before first paint; without one the page follows the system.
       try {
