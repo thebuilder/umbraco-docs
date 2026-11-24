@@ -67,6 +67,22 @@ export default defineConfig({
 
 The accent has a shade per color mode, `#7557e8` in light and `#a78bfa` in dark, and each meets WCAG AA as link text and with its button label, which Blume picks: white in light, dark in dark. It needs Blume 2. `DOCS_ACCENT` exports the two shades for other uses, such as the hub's own CSS.
 
+## Analytics
+
+Every docs site counts visits with [Pageflock](https://pageflock.com), in the thebuilder workspace, where each site has a Pageflock site of its own. Its ID is the site's domain with dots as dashes, such as `blur-thebuilder-dk`. Add `pageflock()` to `analytics` in `blume.config.ts`, next to any other adapters:
+
+```ts
+import { pageflock } from "@thebuilder/umbraco-docs/analytics";
+import { defineConfig } from "blume";
+import { vercel } from "blume/analytics";
+
+export default defineConfig({
+  analytics: [vercel(), pageflock("blur-thebuilder-dk")],
+});
+```
+
+It loads Pageflock's script with automatic events on, so outbound links, file downloads and 404s count too. It needs Blume 2. `PAGEFLOCK_SCRIPT_SRC` exports the script's URL for a site that isn't built with Blume, such as the hub.
+
 ## Diagrams
 
 Blume turns a ` ```mermaid ` fence in an `.mdx` page into a [Mermaid](https://mermaid.js.org) diagram, and only loads Mermaid on pages that have one. Out of the box it uses Mermaid's own lavender and yellow. `styles/diagrams.css` repaints diagrams from the site's Blume tokens instead, so boxes take the family accent, notes and frames use the muted surface, and the text uses the body font, in both color modes. Import it at the top of the site's `theme.css`:

@@ -1,6 +1,6 @@
 {
   "name": "@thebuilder/umbraco-docs",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Composable Blume presentation and metadata contracts for TheBuilder Umbraco package documentation.",
   "type": "module",
   "license": "MIT",
@@ -33,6 +33,10 @@
     "./styles/landing.css": "./styles/landing.css",
     "./styles/diagrams.css": "./styles/diagrams.css",
     "./behaviors": "./dist/behaviors.js",
+    "./analytics": {
+      "types": "./dist/analytics.d.ts",
+      "import": "./dist/analytics.js"
+    },
     "./og": {
       "types": "./dist/og/index.d.ts",
       "import": "./dist/og/index.js"
